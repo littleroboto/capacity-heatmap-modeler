@@ -217,6 +217,90 @@ ABS states the seasonal pattern directly in its own methodology and commentary (
   it **hides** the raw seasonal shape). It is the correct **ongoing** primary source to watch for 2026
   food-service spending, but it is **broader than QSR** and does not isolate takeaway.
 
+### 3d. Monthly original-series index (historical, for the relative seasonal shape)
+
+**This subsection replaces the "estimate" flag in 3a with actual extracted numbers.** The precise monthly
+values were pulled directly from the **ABS Data API (SDMX)**, dataflow **`RT` (Retail Trade)**, the
+**Original** series (not seasonally adjusted), **Current Prices**, **Monthly**. State × industry **is**
+published, so both National and NSW are available, and the **Takeaway food services** subgroup (ANZSIC
+**4512**) **is** separately available. Two complete calendar years (**2023, 2024**) were used to build the
+index; Jan–Jun 2025 (the final months before discontinuation) is shown for reference but not folded into
+the index (partial year).
+
+**Series keys used** (dimension order `MEASURE.INDUSTRY.TSEST.REGION.FREQ`):
+
+| Series | ANZSIC | Key |
+| --- | --- | --- |
+| Takeaway food services — **National** (primary target) | 4512 | `M1.15.10.AUS.M` |
+| Cafes, restaurants & takeaway food services — National (whole group) | 451 | `M1.46.10.AUS.M` |
+| Takeaway food services — **NSW** | 4512 | `M1.15.10.1.M` |
+| Cafes, restaurants & takeaway food services — NSW (whole group) | 451 | `M1.46.10.1.M` |
+
+(`M1` = Current Prices, `10` = Original, `15` = Takeaway food services, `46` = whole group, `AUS`/`1` =
+Australia / NSW, `M` = Monthly.)
+
+**Underlying original-series turnover ($m, current prices, ORIGINAL/NSA):**
+
+| Month | Takeaway AUS 2023 | Takeaway AUS 2024 | Group AUS 2023 | Group AUS 2024 |
+| --- | --- | --- | --- | --- |
+| Jan | 1878.9 | 1975.6 | 5100.2 | 5219.1 |
+| Feb | 1706.7 | 1860.5 | 4680.6 | 4981.1 |
+| Mar | 1960.4 | 2017.5 | 5343.9 | 5378.4 |
+| Apr | 1936.8 | 1973.4 | 5157.9 | 5325.3 |
+| May | 1937.9 | 1981.1 | 5325.2 | 5391.6 |
+| Jun | 1925.2 | 1930.2 | 5152.1 | 5115.3 |
+| Jul | 2066.0 | 2063.0 | 5398.0 | 5431.5 |
+| Aug | 2062.1 | 2099.6 | 5494.3 | 5554.8 |
+| Sep | 2064.6 | 2068.0 | 5481.3 | 5524.5 |
+| Oct | 2070.8 | 2141.3 | 5551.1 | 5666.1 |
+| Nov | 2026.4 | 2129.3 | 5463.5 | 5710.4 |
+| Dec | 2218.1 | 2290.5 | 5837.4 | 6113.6 |
+
+**Normalised MONTHLY INDEX (1.00 = calendar-year average month; each year indexed to its own 12-month mean,
+then the two years averaged):**
+
+| Month | Takeaway AUS | Group AUS | Takeaway NSW | Group NSW |
+| --- | --- | --- | --- | --- |
+| Jan | 0.956 | 0.957 | 0.977 | 0.973 |
+| Feb | **0.884** | **0.896** | **0.880** | **0.923** |
+| Mar | 0.987 | 0.994 | 0.984 | 0.994 |
+| Apr | 0.970 | 0.972 | 0.970 | 0.955 |
+| May | 0.972 | 0.994 | 0.966 | 1.008 |
+| Jun | 0.956 | 0.952 | 0.958 | 0.951 |
+| Jul | 1.024 | 1.004 | 0.997 | 0.980 |
+| Aug | 1.032 | 1.025 | 1.017 | 1.006 |
+| Sep | 1.025 | 1.021 | 1.021 | 1.012 |
+| Oct | 1.045 | 1.040 | 1.052 | 1.048 |
+| Nov | 1.030 | 1.036 | 1.044 | 1.049 |
+| Dec | **1.118** | **1.108** | **1.133** | **1.101** |
+
+**Peak / trough (all four series agree on the shape):**
+
+| Series | Trough | Peak | Peak/trough ratio |
+| --- | --- | --- | --- |
+| Takeaway AUS | **Feb (0.884)** | **Dec (1.118)** | **1.26** |
+| Group AUS | Feb (0.896) | Dec (1.108) | 1.24 |
+| Takeaway NSW | Feb (0.880) | Dec (1.133) | 1.29 |
+| Group NSW | Feb (0.923) | Dec (1.101) | 1.19 |
+
+**Reading of the shape (now numeric, ABS-primary):**
+
+- **Peak = December** (~+11–13% above the average month) — confirms the Christmas peak from 3a.
+- **Trough = February** (~−11–12% below average), not January. January is only mildly soft (~0.96–0.98);
+  the real low point is February. This **refines** the earlier 3a wording ("Feb–Mar softest early-year"):
+  the single softest month is unambiguously **February**, with June a secondary local dip.
+- Winter (Jul–Oct) sits modestly above average (~1.02–1.05); Oct/Nov build toward the December peak.
+- **Month-length caveat:** the ABS original series is **not** adjusted for the number of days/trading days
+  in a month, so February's trough is **amplified** by it being a 28-day month. If the capacity model
+  works in per-day terms, deflate the raw monthly index by days-in-month before use; if it works in
+  monthly totals, use the index as-is.
+
+**Day-of-week reconfirmation:** ABS publishes **NO day-of-week breakdown** for this category (or any Retail
+Trade category) in **any** year — the `RT` dataflow's finest time granularity is **Monthly** (`FREQ = M`;
+there is no daily/weekly frequency for retail turnover). The weekend-vs-weekday effect is confirmed only
+**qualitatively** by the ABS methodology (see 3b). **Any day-of-week layer in the model therefore remains
+an estimate**, not ABS-sourced.
+
 ---
 
 ## Gaps where primary data was unavailable
@@ -256,3 +340,5 @@ All sources below are first-party / owning-org primary sources.
    <https://www.abs.gov.au/statistics/economy/finance/monthly-household-spending-indicator> — *(Owner: Australian Bureau of Statistics.)*
 9. **ABS — Changes in the seasonality of Retail Turnover** (indicative monthly-share magnitudes; non-food retail only — used only as scale illustration, not applied to QSR).
    <https://www.abs.gov.au/articles/changes-seasonality-retail-turnover> — *(Owner: Australian Bureau of Statistics.)*
+10. **ABS Data API (SDMX) — Retail Trade dataflow `RT`** (source of the §3d monthly original-series index; ORIGINAL/NSA, Current Prices, Monthly). Series keys `MEASURE.INDUSTRY.TSEST.REGION.FREQ`: Takeaway food services / National = `M1.15.10.AUS.M`; whole group / National = `M1.46.10.AUS.M`; Takeaway food services / NSW = `M1.15.10.1.M`; whole group / NSW = `M1.46.10.1.M`. Example call:
+   <https://data.api.abs.gov.au/rest/data/RT/M1.15.10.AUS.M?startPeriod=2023-01&endPeriod=2024-12> (browse via ABS Data Explorer <https://explore.data.abs.gov.au/> → "Retail Trade"). Structure/codelists: <https://data.api.abs.gov.au/rest/datastructure/ABS/RT?references=all>. Data pulled 2026-07-10. *(Owner: Australian Bureau of Statistics.)*

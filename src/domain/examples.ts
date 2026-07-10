@@ -117,29 +117,48 @@ export function qsrCalendar(): Scenario {
 /**
  * AU / NSW QSR busyness — subtractive: the covers Consumers bring vs a flat service
  * Capacity. Reducers cut Capacity around Christmas (about the only time a QSR really
- * closes); busyness otherwise rides entirely on Consumers — an assumed weekly build to
- * a Fri/Sat peak, plus ABS-anchored December/January seasonality and NSW school-holiday
- * spikes. Dates use the NSW (Eastern division) 2026 calendar. Day-of-week weighting is
- * an estimate; see docs/research/au-nsw-qsr-busyness-2026.md for sources and caveats.
+ * closes); busyness rides on Consumers in three layers: an assumed weekly build to a
+ * Fri/Sat peak, an ABS-grounded monthly seasonal shape (December peak, January trough),
+ * and NSW school-holiday spikes on top. The monthly uplifts come from the ABS per-day
+ * original-series index (Takeaway food services, 2023–24) and the dates from the NSW
+ * (Eastern division) 2026 calendar; the weekly day-of-week shape is an estimate (ABS
+ * publishes none). Sources and the index: docs/research/au-nsw-qsr-busyness-2026.md.
  */
 export function nswQsrBusyness(): Scenario {
   const NSW = { market: "NSW" };
-  const schoolBreak = (id: string, label: string, start: string, end: string) => ({
+  const span = (id: string, label: string, start: string, end: string, amount: number) => ({
     id,
     label,
     kind: "spanning" as const,
-    amount: 700,
+    amount,
     start,
     end,
     tags: NSW,
     shape: { type: "flat" as const },
   });
 
+  // Monthly seasonal uplift in covers/day above the January trough, scaled from the ABS
+  // per-day original-series index (§3d of the research file): each month's uplift is
+  // baseWeeklyAvg (~2514) × (perDayIndex_month / perDayIndex_Jan − 1). January = 0.
+  const seasonal = [
+    span("seasonal-feb", "February", "2026-02-01", "2026-02-28", 60),
+    span("seasonal-mar", "March", "2026-03-01", "2026-03-31", 80),
+    span("seasonal-apr", "April", "2026-04-01", "2026-04-30", 120),
+    span("seasonal-may", "May", "2026-05-01", "2026-05-31", 40),
+    span("seasonal-jun", "June", "2026-06-01", "2026-06-30", 85),
+    span("seasonal-jul", "July", "2026-07-01", "2026-07-31", 180),
+    span("seasonal-aug", "August", "2026-08-01", "2026-08-31", 200),
+    span("seasonal-sep", "September", "2026-09-01", "2026-09-30", 270),
+    span("seasonal-oct", "October", "2026-10-01", "2026-10-31", 235),
+    span("seasonal-nov", "November", "2026-11-01", "2026-11-30", 285),
+    span("seasonal-dec", "December (festive peak)", "2026-12-01", "2026-12-31", 425),
+  ];
+
   return {
     config: {
       name: "AU / NSW — QSR busyness",
       description:
-        "The covers Consumers bring vs a flat NSW service Capacity. Reducers close Capacity around Christmas; busyness builds to a Fri/Sat peak and lifts for the ABS December/January season and NSW school holidays. Weekly shape is illustrative — see docs/research/au-nsw-qsr-busyness-2026.md.",
+        "The covers Consumers bring vs a flat NSW service Capacity. Reducers close Capacity around Christmas; busyness rides a weekly Fri/Sat peak, an ABS-grounded monthly season (December peak, January trough) and NSW school holidays. Monthly shape from the ABS per-day index; weekly shape is illustrative — see docs/research/au-nsw-qsr-busyness-2026.md.",
       mode: "subtractive",
       unit: "covers",
       start: YEAR_START,
@@ -169,41 +188,13 @@ export function nswQsrBusyness(): Scenario {
       { id: "midweek-build", label: "Midweek build", kind: "recurring", amount: 400, weekdays: ["wed", "thu"], tags: NSW },
       { id: "weekend-peak", label: "Fri/Sat peak", kind: "recurring", amount: 1200, weekdays: ["fri", "sat"], tags: NSW },
       { id: "sunday-trade", label: "Sunday trade", kind: "recurring", amount: 400, weekdays: ["sun"], tags: NSW },
-      // Seasonality (ABS-anchored): December festive peak, the New Year week, and an elevated January.
-      {
-        id: "december-festive",
-        label: "December festive peak (summer break begins)",
-        kind: "spanning",
-        amount: 0,
-        start: "2026-12-01",
-        end: "2026-12-24",
-        tags: NSW,
-        shape: { type: "ramp", from: 800, to: 2600 },
-      },
-      {
-        id: "new-year-week",
-        label: "New Year week (Boxing Day → NYE)",
-        kind: "spanning",
-        amount: 2200,
-        start: "2026-12-26",
-        end: "2026-12-31",
-        tags: NSW,
-        shape: { type: "flat" },
-      },
-      {
-        id: "january-summer",
-        label: "January summer holidays + events",
-        kind: "spanning",
-        amount: 1000,
-        start: "2026-01-01",
-        end: "2026-01-31",
-        tags: NSW,
-        shape: { type: "flat" },
-      },
-      // NSW school-holiday spikes (Eastern division 2026 breaks): families out → more covers.
-      schoolBreak("autumn-break", "Autumn school holidays", "2026-04-07", "2026-04-17"),
-      schoolBreak("winter-break", "Winter school holidays", "2026-07-06", "2026-07-17"),
-      schoolBreak("spring-break", "Spring school holidays", "2026-09-28", "2026-10-09"),
+      // Monthly seasonal shape (ABS-grounded per-day index; January = trough).
+      ...seasonal,
+      // NSW school-holiday spikes (Eastern division 2026 breaks): families out → more
+      // covers, layered on top of the monthly season (a deliberate within-month lift).
+      span("autumn-break", "Autumn school holidays", "2026-04-07", "2026-04-17", 700),
+      span("winter-break", "Winter school holidays", "2026-07-06", "2026-07-17", 700),
+      span("spring-break", "Spring school holidays", "2026-09-28", "2026-10-09", 700),
     ],
   };
 }

@@ -31,24 +31,27 @@ describe("nswQsrBusyness example", () => {
     expect(xmas.overBlackout).toBe(true);
   });
 
-  it("drives the pre-Christmas peak into overload (demand surge + reduced supply)", () => {
-    // Christmas Eve: capacity trimmed to 0.8 while festive demand peaks.
-    const eve = on("2026-12-24");
-    expect(eve.state).toBe("active");
-    expect(eve.reference).toBe(4000);
-    expect(eve.intensity).toBeGreaterThan(1);
+  it("tips Boxing Day into overload (weekend demand meets a capacity cut)", () => {
+    // Boxing Day (Sat): capacity trimmed to 0.7 while weekend + December demand lands.
+    const boxing = on("2026-12-26");
+    expect(boxing.state).toBe("active");
+    expect(boxing.reference).toBe(3500);
+    expect(boxing.intensity).toBeGreaterThan(1);
   });
 
-  it("keeps the New Year week busy (no post-Christmas seasonal gap)", () => {
-    // New Year's Eve sits inside the summer break; it should read warm, not baseline.
-    const nye = on("2026-12-31");
-    expect(nye.state).toBe("active");
-    expect(nye.intensity).toBeGreaterThan(0.7);
+  it("carries the ABS seasonal shape: December season above January trough", () => {
+    // Matched Tuesdays with no reducer and no school break — the only difference is the
+    // monthly seasonal uplift, so this isolates the ABS per-day shape (Dec peak > Jan 0).
+    const decTue = on("2026-12-08");
+    const janTue = on("2026-01-06");
+    expect(decTue.intensity).toBeGreaterThan(janTue.intensity);
   });
 
-  it("runs coolest in the early-year lull (no seasonal uplift)", () => {
-    // A February weekday carries only the weekly rhythm — well under capacity.
-    const feb = on("2026-02-10"); // Tuesday
-    expect(feb.intensity).toBeLessThan(0.5);
+  it("lifts a school-holiday week above the same weekday outside the break", () => {
+    // Winter break runs 6–17 Jul; compare a mid-break day with the same weekday a week
+    // later (same monthly season, so the gap is purely the school-holiday spike).
+    const inBreak = on("2026-07-15");
+    const outBreak = on("2026-07-22");
+    expect(inBreak.load).toBeGreaterThan(outBreak.load);
   });
 });

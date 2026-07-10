@@ -114,6 +114,100 @@ export function qsrCalendar(): Scenario {
   };
 }
 
+/**
+ * AU / NSW QSR busyness — subtractive: the covers Consumers bring vs a flat service
+ * Capacity. Reducers cut Capacity around Christmas (about the only time a QSR really
+ * closes); busyness otherwise rides entirely on Consumers — an assumed weekly build to
+ * a Fri/Sat peak, plus ABS-anchored December/January seasonality and NSW school-holiday
+ * spikes. Dates use the NSW (Eastern division) 2026 calendar. Day-of-week weighting is
+ * an estimate; see docs/research/au-nsw-qsr-busyness-2026.md for sources and caveats.
+ */
+export function nswQsrBusyness(): Scenario {
+  const NSW = { market: "NSW" };
+  const schoolBreak = (id: string, label: string, start: string, end: string) => ({
+    id,
+    label,
+    kind: "spanning" as const,
+    amount: 700,
+    start,
+    end,
+    tags: NSW,
+    shape: { type: "flat" as const },
+  });
+
+  return {
+    config: {
+      name: "AU / NSW — QSR busyness",
+      description:
+        "The covers Consumers bring vs a flat NSW service Capacity. Reducers close Capacity around Christmas; busyness builds to a Fri/Sat peak and lifts for the ABS December/January season and NSW school holidays. Weekly shape is illustrative — see docs/research/au-nsw-qsr-busyness-2026.md.",
+      mode: "subtractive",
+      unit: "covers",
+      start: YEAR_START,
+      end: YEAR_END,
+      dimensions: [{ id: "market", label: "Market", values: ["NSW"] }],
+      composition: "sum",
+    },
+    capacities: [
+      {
+        id: "cap-nsw",
+        label: "NSW QSR service capacity",
+        amount: 5000,
+        weekdays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+        tags: NSW,
+      },
+    ],
+    // Capacity cuts — the small, credible festive cluster (NSW public holidays 2026).
+    reducers: [
+      { id: "xmas-eve", label: "Christmas Eve — early close", multiplier: 0.8, start: "2026-12-24", end: "2026-12-24", tags: NSW },
+      { id: "xmas-day", label: "Christmas Day — closed", multiplier: 0, start: "2026-12-25", end: "2026-12-25", tags: NSW },
+      { id: "boxing-day", label: "Boxing Day — late open", multiplier: 0.7, start: "2026-12-26", end: "2026-12-26", tags: NSW },
+      { id: "new-years-day", label: "New Year's Day — late open", multiplier: 0.8, start: "2026-01-01", end: "2026-01-01", tags: NSW },
+    ],
+    consumers: [
+      // Weekly rhythm (assumed, non-primary): busyness builds across the week, Fri/Sat peak, Sun softer.
+      { id: "base-trade", label: "Base trade", kind: "recurring", amount: 2000, weekdays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"], tags: NSW },
+      { id: "midweek-build", label: "Midweek build", kind: "recurring", amount: 400, weekdays: ["wed", "thu"], tags: NSW },
+      { id: "weekend-peak", label: "Fri/Sat peak", kind: "recurring", amount: 1200, weekdays: ["fri", "sat"], tags: NSW },
+      { id: "sunday-trade", label: "Sunday trade", kind: "recurring", amount: 400, weekdays: ["sun"], tags: NSW },
+      // Seasonality (ABS-anchored): December festive peak, the New Year week, and an elevated January.
+      {
+        id: "december-festive",
+        label: "December festive peak (summer break begins)",
+        kind: "spanning",
+        amount: 0,
+        start: "2026-12-01",
+        end: "2026-12-24",
+        tags: NSW,
+        shape: { type: "ramp", from: 800, to: 2600 },
+      },
+      {
+        id: "new-year-week",
+        label: "New Year week (Boxing Day → NYE)",
+        kind: "spanning",
+        amount: 2200,
+        start: "2026-12-26",
+        end: "2026-12-31",
+        tags: NSW,
+        shape: { type: "flat" },
+      },
+      {
+        id: "january-summer",
+        label: "January summer holidays + events",
+        kind: "spanning",
+        amount: 1000,
+        start: "2026-01-01",
+        end: "2026-01-31",
+        tags: NSW,
+        shape: { type: "flat" },
+      },
+      // NSW school-holiday spikes (Eastern division 2026 breaks): families out → more covers.
+      schoolBreak("autumn-break", "Autumn school holidays", "2026-04-07", "2026-04-17"),
+      schoolBreak("winter-break", "Winter school holidays", "2026-07-06", "2026-07-17"),
+      schoolBreak("spring-break", "Spring school holidays", "2026-09-28", "2026-10-09"),
+    ],
+  };
+}
+
 /** Deploy pipeline — subtractive with coupled Tracks (min composition, ADR-0004). */
 export function deployPipeline(): Scenario {
   return {
@@ -157,5 +251,6 @@ export interface ExampleEntry {
 export const EXAMPLES: ExampleEntry[] = [
   { id: "team-workload", scenario: teamWorkload() },
   { id: "qsr-calendar", scenario: qsrCalendar() },
+  { id: "nsw-qsr-busyness", scenario: nswQsrBusyness() },
   { id: "deploy-pipeline", scenario: deployPipeline() },
 ];

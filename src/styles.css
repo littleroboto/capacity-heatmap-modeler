@@ -64,7 +64,7 @@ button {
 }
 .brand .mark {
   width: 22px; height: 22px; border-radius: 5px;
-  background: linear-gradient(135deg, var(--accent) 0%, #3f9e6b 40%, #d9b53f 65%, var(--accent-warm) 100%);
+  background: linear-gradient(135deg, #2196f3 0%, #3ddc4a 42%, #ffd21f 68%, #ff1f3d 100%);
 }
 .brand small { color: var(--ink-faint); font-weight: 500; }
 

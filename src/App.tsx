@@ -10,9 +10,9 @@ import { EntryTable } from "./ui/EntryTable";
 import { YamlDrawer } from "./ui/YamlDrawer";
 import { Poster } from "./ui/Poster";
 import { Toolbar } from "./ui/Toolbar";
-import { Learn } from "./ui/Learn";
 
-type View = "model" | "learn";
+// The Learn course is a standalone site synced into /learn at build time.
+const learnHref = `${import.meta.env.BASE_URL}learn/index.html`;
 
 // Deep clone so editing never mutates the shared example objects.
 function clone<T>(x: T): T {
@@ -20,7 +20,6 @@ function clone<T>(x: T): T {
 }
 
 export function App() {
-  const [view, setView] = useState<View>("model");
   const [exampleId, setExampleId] = useState(EXAMPLES[0].id);
   const [scenario, setScenario] = useState<Scenario>(() => clone(EXAMPLES[0].scenario));
   const [showYaml, setShowYaml] = useState(false);
@@ -55,54 +54,43 @@ export function App() {
       <header className="topbar">
         <div className="brand">
           <span className="mark" />
-          Capacity Heatmap Modeler
+          <span className="brand-name">Capacity Heatmap Modeler</span>
           <small>· timeseries capacity, one page</small>
         </div>
-        <div className="tabs">
-          <button className={view === "model" ? "active" : ""} onClick={() => setView("model")}>
-            Model
-          </button>
-          <button className={view === "learn" ? "active" : ""} onClick={() => setView("learn")}>
-            Learn
-          </button>
-        </div>
         <div className="spacer" />
-        {view === "model" && (
-          <Toolbar
-            currentExampleId={exampleId}
-            onLoadExample={loadExample}
-            onLoadScenario={(s) => {
-              setScenario(s);
-            }}
-            onExportYaml={() => downloadText(`${slug(scenario.config.name)}.yaml`, toYaml(scenario))}
-            onExportPng={handleExportPng}
-            onPrint={printPoster}
-            exporting={exporting}
-          />
-        )}
+        <Toolbar
+          currentExampleId={exampleId}
+          onLoadExample={loadExample}
+          onLoadScenario={(s) => {
+            setScenario(s);
+          }}
+          onExportYaml={() => downloadText(`${slug(scenario.config.name)}.yaml`, toYaml(scenario))}
+          onExportPng={handleExportPng}
+          onPrint={printPoster}
+          exporting={exporting}
+        />
+        <span className="topbar-divider" />
+        <a className="learn-link" href={learnHref} target="_blank" rel="noreferrer">
+          Learn
+          <span className="ext" aria-hidden="true">↗</span>
+        </a>
       </header>
 
-      {view === "learn" ? (
-        <div className="main">
-          <Learn />
-        </div>
-      ) : (
-        <div className="workspace">
-          <aside className="sidebar">
-            <ConfigPanel config={scenario.config} onChange={patchConfig} />
-            <EntryTable scenario={scenario} onChange={setScenario} />
-            <div className="section">
-              <button className="btn ghost" onClick={() => setShowYaml((v) => !v)}>
-                {showYaml ? "▾ Hide YAML" : "▸ Edit raw YAML"}
-              </button>
-            </div>
-            {showYaml && <YamlDrawer scenario={scenario} onApply={setScenario} />}
-          </aside>
-          <main className="main">
-            <Poster ref={posterRef} scenario={scenario} result={result} kpis={kpis} />
-          </main>
-        </div>
-      )}
+      <div className="workspace">
+        <aside className="sidebar">
+          <ConfigPanel config={scenario.config} onChange={patchConfig} />
+          <EntryTable scenario={scenario} onChange={setScenario} />
+          <div className="yaml-toggle">
+            <button className="btn ghost" onClick={() => setShowYaml((v) => !v)}>
+              {showYaml ? "▾ Hide YAML" : "▸ Edit raw YAML"}
+            </button>
+          </div>
+          {showYaml && <YamlDrawer scenario={scenario} onApply={setScenario} />}
+        </aside>
+        <main className="main">
+          <Poster ref={posterRef} scenario={scenario} result={result} kpis={kpis} />
+        </main>
+      </div>
     </div>
   );
 }

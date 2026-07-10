@@ -20,7 +20,7 @@
 
 * { box-sizing: border-box; }
 
-html, body, #root { height: 100%; margin: 0; }
+html, body, #root { margin: 0; }
 
 body {
   font-family: var(--font);
@@ -40,7 +40,7 @@ button {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100vh;
 }
 
 .topbar {
@@ -52,6 +52,8 @@ button {
   background: var(--paper);
   border-bottom: 1px solid var(--border);
   flex: 0 0 auto;
+  position: sticky;
+  top: 0;
   z-index: 5;
 }
 
@@ -68,19 +70,21 @@ button {
 }
 .brand small { color: var(--ink-faint); font-weight: 500; }
 
-.tabs { display: flex; gap: 4px; }
-.tabs button {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--ink-soft);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-weight: 550;
-}
-.tabs button:hover { background: var(--bg); color: var(--ink); }
-.tabs button.active { background: var(--accent-soft); color: var(--accent); }
-
 .topbar .spacer { flex: 1; }
+
+/* Divider + Learn link (the course lives at /learn) */
+.topbar-divider {
+  width: 1px; align-self: stretch; margin: 12px 4px;
+  background: var(--border);
+}
+.learn-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  color: var(--accent); font-weight: 600; text-decoration: none;
+  border: 1px solid transparent; transition: background 0.12s, border-color 0.12s;
+}
+.learn-link:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+.learn-link .ext { font-size: 12px; opacity: 0.75; }
 
 .toolbar { display: flex; align-items: center; gap: 8px; }
 
@@ -118,34 +122,52 @@ select.control:focus, input.control:focus, textarea.control:focus {
   display: grid;
   grid-template-columns: 360px 1fr;
   flex: 1 1 auto;
-  min-height: 0;
 }
 
 .sidebar {
   background: var(--panel);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 .main {
-  overflow-y: auto;
   padding: 24px;
 }
 
 /* ---------- Panel sections ---------- */
+/* Each sidebar block is a card; the five headers share one rhythm so the
+   panel reads top-to-bottom at a glance (Setup / Timeframe / View / Data / YAML). */
+.section {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 14px 4px;
+}
 .section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-faint);
-  margin: 0 0 10px;
-  font-weight: 650;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
 }
-.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.section h3::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .field label { font-size: 12px; color: var(--ink-soft); font-weight: 550; }
 .field .control { width: 100%; }
 .field-row { display: flex; gap: 10px; }
@@ -223,7 +245,7 @@ select.control:focus, input.control:focus, textarea.control:focus {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px;
-  background: var(--paper);
+  background: var(--bg);
 }
 .entry .entry-top { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
 .entry .entry-top input { flex: 1; }
@@ -236,45 +258,28 @@ select.control:focus, input.control:focus, textarea.control:focus {
 
 .hint { font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
 
+/* Raw-YAML toggle sits between the Data card and the YAML card, not itself a card */
+.yaml-toggle { display: flex; }
+.yaml-toggle .btn.ghost {
+  width: 100%;
+  justify-content: flex-start;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.yaml-toggle .btn.ghost:hover { background: var(--panel); border-color: var(--border); }
+
 /* ---------- YAML drawer ---------- */
 .yaml-drawer textarea { width: 100%; min-height: 260px; font-family: var(--mono); font-size: 12px; line-height: 1.5; resize: vertical; }
 .yaml-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
 .yaml-error { color: var(--accent-warm); font-size: 12px; margin-top: 6px; white-space: pre-wrap; }
 
-/* ---------- Learn ---------- */
-.learn { max-width: 860px; margin: 0 auto; }
-.learn h1 { font-size: 24px; letter-spacing: -0.015em; }
-.learn .lead { color: var(--ink-soft); font-size: 15px; max-width: 65ch; }
-.learn .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 22px; }
-.learn .card {
-  display: block; text-decoration: none; color: inherit;
-  border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 16px; background: var(--paper); box-shadow: var(--shadow);
-  transition: transform 0.1s, border-color 0.1s;
-}
-.learn .card:hover { transform: translateY(-2px); border-color: var(--accent); }
-.learn .card .kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 650; }
-.learn .card h3 { margin: 6px 0 4px; font-size: 15px; }
-.learn .card p { margin: 0; color: var(--ink-soft); font-size: 13px; }
-.learn .empty { color: var(--ink-faint); margin-top: 20px; }
-.learn .intro-link {
-  display: block; text-decoration: none; margin-top: 20px;
-  border: 1px solid var(--accent); border-radius: var(--radius);
-  padding: 16px 18px; background: var(--accent-soft); color: var(--ink);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-.learn .intro-link:hover { transform: translateY(-2px); box-shadow: 0 0 0 3px var(--accent-soft); }
-.learn .intro-link .intro-kicker {
-  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--accent); font-weight: 650;
-}
-.learn .intro-link .intro-title { display: block; font-size: 17px; font-weight: 650; margin: 4px 0 3px; color: var(--accent); }
-.learn .intro-link .intro-sub { display: block; font-size: 13px; color: var(--ink-soft); }
-
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 1fr; }
-  .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 45vh; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+}
+@media (max-width: 720px) {
+  .brand small { display: none; }
 }
 
 /* ---------- Print (one-page PDF) ---------- */

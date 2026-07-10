@@ -137,6 +137,13 @@ select.control:focus, input.control:focus, textarea.control:focus {
   padding: 24px;
 }
 
+/* Consumer/capacity editing table, moved below the heatmap. Aligned to the
+   poster's centred column; it's an editing surface, so it's kept out of print. */
+.data-editor {
+  max-width: 1080px;
+  margin: 20px auto 0;
+}
+
 /* ---------- Panel sections ---------- */
 /* Each sidebar block is a card; the five headers share one rhythm so the
    panel reads top-to-bottom at a glance (Setup / Timeframe / View / Data / YAML). */
@@ -240,22 +247,57 @@ select.control:focus, input.control:focus, textarea.control:focus {
 .entry-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
 .entry-tabs button { padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid transparent; background: transparent; color: var(--ink-soft); font-weight: 550; font-size: 12px; }
 .entry-tabs button.active { background: var(--accent-soft); color: var(--accent); }
-.entry-list { display: flex; flex-direction: column; gap: 8px; }
-.entry {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px;
-  background: var(--bg);
+/* One row per entry: compact, read-only summary; expand a row to edit it. */
+.dtable-wrap { overflow-x: auto; }
+.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dtable thead th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  font-weight: 650;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
-.entry .entry-top { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-.entry .entry-top input { flex: 1; }
-.entry .kind-badge { font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--bg); color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
-.entry .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.entry .mini { font-size: 11px; color: var(--ink-faint); }
-.entry .del { border: none; background: transparent; color: var(--ink-faint); padding: 2px 6px; border-radius: 4px; }
-.entry .del:hover { background: #fbe9e7; color: var(--accent-warm); }
-.add-row { margin-top: 8px; }
+.dtable th.sortable { cursor: pointer; user-select: none; }
+.dtable th.sortable:hover { color: var(--ink-soft); }
+.dtable .sort-ind { color: var(--accent); font-size: 9px; }
+.dtable tbody td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.dtable tr.row:hover td { background: var(--panel); }
+.dtable tr.row.expanded td { background: var(--accent-soft); border-bottom-color: transparent; }
+.dt-expander {
+  border: none; background: transparent; color: var(--ink-soft);
+  font-size: 12px; padding: 2px 4px; width: 22px; line-height: 1;
+}
+.dt-expander:hover { color: var(--accent); }
+.dt-name { font-weight: 600; color: var(--ink); }
+.dt-num { font-variant-numeric: tabular-nums; }
+.dt-muted { color: var(--ink-faint); }
+.dtable .del {
+  border: none; background: transparent; color: var(--ink-faint);
+  padding: 4px 7px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1;
+}
+.dtable .del:hover { background: #fbe9e7; color: var(--accent-warm); }
 
+/* Type chip — colour-coded to match the mode badges on the poster. */
+.kind-badge {
+  font-size: 10px; padding: 2px 9px; border-radius: 999px; font-weight: 600;
+  letter-spacing: 0.02em; text-transform: capitalize; white-space: nowrap;
+  background: var(--bg); color: var(--ink-soft);
+}
+.kind-recurring { background: var(--accent-soft); color: var(--accent); }
+.kind-spanning { background: #f0ebf5; color: #6b4a8f; }
+
+/* Expanded edit form beneath a row. */
+.dtable tr.subrow > td { background: var(--accent-soft); padding: 2px 10px 14px 34px; }
+.dt-form { display: flex; flex-direction: column; gap: 10px; max-width: 460px; }
+.dt-form .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dt-form .mini { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--ink-soft); }
+.dt-form .tag-field { max-width: 220px; }
+
+.add-row { margin-top: 10px; }
 .hint { font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
 
 /* Raw-YAML toggle sits between the Data card and the YAML card, not itself a card */
@@ -284,7 +326,7 @@ select.control:focus, input.control:focus, textarea.control:focus {
 
 /* ---------- Print (one-page PDF) ---------- */
 @media print {
-  .topbar, .sidebar { display: none !important; }
+  .topbar, .sidebar, .data-editor { display: none !important; }
   .workspace { display: block; }
   .main { overflow: visible; padding: 0; }
   .poster { border: none; box-shadow: none; max-width: none; margin: 0; padding: 0; }

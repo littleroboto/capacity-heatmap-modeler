@@ -18,13 +18,16 @@
     "deploy": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
     "html-to-image": "^1.11.13",
     "js-yaml": "^4.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

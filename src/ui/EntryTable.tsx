@@ -1,5 +1,16 @@
-import { useState } from "react";
-import type { Capacity, Consumer, Reducer, Scenario, Tags } from "../domain/types";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getExpandedRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  type ExpandedState,
+} from "@tanstack/react-table";
+import type { Capacity, Consumer, Reducer, Scenario, Tags, Weekday } from "../domain/types";
+import { num } from "./format";
 
 type Tab = "capacities" | "reducers" | "consumers";
 
@@ -19,8 +30,103 @@ function setTag(tags: Tags | undefined, key: string, value: string): Tags | unde
   return Object.keys(next).length ? next : undefined;
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function shortDate(iso: string): string {
+  const [, m, d] = iso.split("-");
+  return `${Number(d)} ${MONTHS[Number(m) - 1]}`;
+}
+function weekdaysLabel(w?: Weekday[]): string {
+  if (!w || w.length === 0) return "Mon–Fri";
+  if (w.length === 7) return "Daily";
+  return w.map((d) => d[0].toUpperCase() + d.slice(1)).join(", ");
+}
+function consumerWhen(c: Consumer): string {
+  return c.kind === "spanning" ? `${shortDate(c.start)} – ${shortDate(c.end)}` : weekdaysLabel(c.weekdays);
+}
+
+/** Generic expandable, sortable table. Expanding a row reveals its edit form. */
+function DataTable<T extends { id: string }>({
+  data,
+  columns,
+  renderSubRow,
+  expandId,
+}: {
+  data: T[];
+  columns: ColumnDef<T, any>[];
+  renderSubRow: (row: T) => ReactNode;
+  expandId: string | null;
+}) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [expanded, setExpanded] = useState<ExpandedState>({});
+
+  // Auto-open a freshly added row so it's ready to edit.
+  useEffect(() => {
+    if (expandId) setExpanded((e) => (e === true ? e : { ...e, [expandId]: true }));
+  }, [expandId]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { sorting, expanded },
+    getRowId: (row) => row.id,
+    onSortingChange: setSorting,
+    onExpandedChange: setExpanded,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+  });
+
+  const colCount = table.getAllLeafColumns().length;
+
+  return (
+    <div className="dtable-wrap">
+      <table className="dtable">
+        <thead>
+          {table.getHeaderGroups().map((hg) => (
+            <tr key={hg.id}>
+              {hg.headers.map((h) => {
+                const sortable = h.column.getCanSort();
+                const dir = h.column.getIsSorted();
+                return (
+                  <th
+                    key={h.id}
+                    className={sortable ? "sortable" : undefined}
+                    onClick={sortable ? h.column.getToggleSortingHandler() : undefined}
+                    aria-sort={dir === "asc" ? "ascending" : dir === "desc" ? "descending" : undefined}
+                  >
+                    {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                    {sortable && <span className="sort-ind">{dir === "asc" ? " ▲" : dir === "desc" ? " ▼" : ""}</span>}
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <Fragment key={row.id}>
+              <tr className={row.getIsExpanded() ? "row expanded" : "row"}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                ))}
+              </tr>
+              {row.getIsExpanded() && (
+                <tr className="subrow">
+                  <td colSpan={colCount}>{renderSubRow(row.original)}</td>
+                </tr>
+              )}
+            </Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function EntryTable({ scenario, onChange }: Props) {
   const [tab, setTab] = useState<Tab>("consumers");
+  const [expandId, setExpandId] = useState<string | null>(null);
   const facet = scenario.config.facetBy;
   const facetDim = scenario.config.dimensions.find((d) => d.id === facet);
 
@@ -45,222 +151,290 @@ export function EntryTable({ scenario, onChange }: Props) {
     );
   }
 
-  // ---- Capacities ----
-  function renderCapacities() {
-    const items = scenario.capacities;
-    const update = (i: number, part: Partial<Capacity>) =>
-      patch({ capacities: items.map((c, idx) => (idx === i ? { ...c, ...part } : c)) });
-    const remove = (i: number) => patch({ capacities: items.filter((_, idx) => idx !== i) });
-    const add = () =>
-      patch({ capacities: [...items, { id: uid("cap"), label: "New capacity", amount: 100 }] });
-
-    return (
-      <div className="entry-list">
-        {items.map((c, i) => (
-          <div className="entry" key={c.id}>
-            <div className="entry-top">
-              <input className="control" value={c.label} onChange={(e) => update(i, { label: e.target.value })} />
-              <button className="del" onClick={() => remove(i)} title="Delete">
-                ✕
-              </button>
-            </div>
-            <div className="grid2">
-              <label className="mini">
-                Amount / day
-                <input
-                  type="number"
-                  className="control"
-                  value={c.amount}
-                  onChange={(e) => update(i, { amount: Number(e.target.value) })}
-                />
-              </label>
-              <label className="mini">
-                Track (optional)
-                <input
-                  className="control"
-                  value={c.track ?? ""}
-                  placeholder="—"
-                  onChange={(e) => update(i, { track: e.target.value || undefined })}
-                />
-              </label>
-            </div>
-            {facetDim && (
-              <div className="mini" style={{ marginTop: 6 }}>
-                <TagSelect tags={c.tags} onSet={(t) => update(i, { tags: t })} />
-              </div>
-            )}
-          </div>
-        ))}
-        <button className="btn add-row" onClick={add}>
-          + Add capacity
-        </button>
-      </div>
-    );
-  }
-
-  // ---- Reducers ----
-  function renderReducers() {
-    const items = scenario.reducers;
-    const update = (i: number, part: Partial<Reducer>) =>
-      patch({ reducers: items.map((r, idx) => (idx === i ? { ...r, ...part } : r)) });
-    const remove = (i: number) => patch({ reducers: items.filter((_, idx) => idx !== i) });
-    const add = () =>
-      patch({
-        reducers: [
-          ...items,
-          { id: uid("red"), label: "New reducer", multiplier: 0.5, start: scenario.config.start, end: scenario.config.end },
-        ],
-      });
-
-    return (
-      <div className="entry-list">
-        {items.map((r, i) => (
-          <div className="entry" key={r.id}>
-            <div className="entry-top">
-              <input className="control" value={r.label} onChange={(e) => update(i, { label: e.target.value })} />
-              <span className="kind-badge">×{r.multiplier}</span>
-              <button className="del" onClick={() => remove(i)} title="Delete">
-                ✕
-              </button>
-            </div>
-            <div className="grid2">
-              <label className="mini">
-                Multiplier (0–1)
-                <input
-                  type="number"
-                  step="0.05"
-                  min="0"
-                  max="1"
-                  className="control"
-                  value={r.multiplier}
-                  onChange={(e) => update(i, { multiplier: Number(e.target.value) })}
-                />
-              </label>
-              <label className="mini">
-                Track (optional)
-                <input
-                  className="control"
-                  value={r.track ?? ""}
-                  placeholder="—"
-                  onChange={(e) => update(i, { track: e.target.value || undefined })}
-                />
-              </label>
-            </div>
-            <div className="grid2" style={{ marginTop: 6 }}>
-              <label className="mini">
-                Start
-                <input type="date" className="control" value={r.start} onChange={(e) => update(i, { start: e.target.value })} />
-              </label>
-              <label className="mini">
-                End
-                <input type="date" className="control" value={r.end} onChange={(e) => update(i, { end: e.target.value })} />
-              </label>
-            </div>
-            {facetDim && (
-              <div className="mini" style={{ marginTop: 6 }}>
-                <TagSelect tags={r.tags} onSet={(t) => update(i, { tags: t })} />
-              </div>
-            )}
-          </div>
-        ))}
-        <button className="btn add-row" onClick={add}>
-          + Add reducer
-        </button>
-      </div>
-    );
-  }
+  // Shared cell renderers.
+  const expander: ColumnDef<any, any> = {
+    id: "expander",
+    header: "",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <button
+        className="dt-expander"
+        onClick={row.getToggleExpandedHandler()}
+        aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+      >
+        {row.getIsExpanded() ? "▾" : "▸"}
+      </button>
+    ),
+  };
+  const trackCell = (v: string | undefined) => (v ? v : <span className="dt-muted">—</span>);
+  const tagColumn = <T,>(getTag: (row: T) => string | undefined): ColumnDef<T, any> => ({
+    id: "tag",
+    header: facetDim?.label ?? "Tag",
+    accessorFn: (row) => getTag(row) ?? "",
+    cell: (info) => info.getValue<string>() || <span className="dt-muted">all</span>,
+  });
 
   // ---- Consumers ----
-  function renderConsumers() {
-    const items = scenario.consumers;
-    const update = (i: number, part: Partial<Consumer>) =>
-      patch({ consumers: items.map((c, idx) => (idx === i ? ({ ...c, ...part } as Consumer) : c)) });
-    const remove = (i: number) => patch({ consumers: items.filter((_, idx) => idx !== i) });
-    const addRecurring = () =>
-      patch({ consumers: [...items, { id: uid("con"), label: "New recurring", kind: "recurring", amount: 30 }] });
-    const addSpanning = () =>
-      patch({
-        consumers: [
-          ...items,
-          {
-            id: uid("con"),
+  const updateConsumer = (id: string, part: Partial<Consumer>) =>
+    patch({ consumers: scenario.consumers.map((c) => (c.id === id ? ({ ...c, ...part } as Consumer) : c)) });
+  const removeConsumer = (id: string) => patch({ consumers: scenario.consumers.filter((c) => c.id !== id) });
+  const addConsumer = (kind: "recurring" | "spanning") => {
+    const id = uid("con");
+    const next: Consumer =
+      kind === "recurring"
+        ? { id, label: "New recurring", kind: "recurring", amount: 30 }
+        : {
+            id,
             label: "New spanning",
             kind: "spanning",
             amount: 100,
             start: scenario.config.start,
             end: scenario.config.end,
             shape: { type: "flat" },
-          },
-        ],
-      });
+          };
+    patch({ consumers: [...scenario.consumers, next] });
+    setExpandId(id);
+  };
 
-    return (
-      <div className="entry-list">
-        {items.map((c, i) => (
-          <div className="entry" key={c.id}>
-            <div className="entry-top">
-              <input className="control" value={c.label} onChange={(e) => update(i, { label: e.target.value })} />
-              <span className="kind-badge">{c.kind}</span>
-              <button className="del" onClick={() => remove(i)} title="Delete">
-                ✕
-              </button>
-            </div>
-            <div className="grid2">
-              <label className="mini">
-                {c.kind === "spanning" && c.shape.type !== "flat" ? "Base amount" : "Amount / day"}
-                <input
-                  type="number"
-                  className="control"
-                  value={c.amount}
-                  onChange={(e) => update(i, { amount: Number(e.target.value) })}
-                />
-              </label>
-              <label className="mini">
-                Track (optional)
-                <input
-                  className="control"
-                  value={c.track ?? ""}
-                  placeholder="—"
-                  onChange={(e) => update(i, { track: e.target.value || undefined })}
-                />
-              </label>
-            </div>
-            {c.kind === "spanning" && (
-              <>
-                <div className="grid2" style={{ marginTop: 6 }}>
-                  <label className="mini">
-                    Start
-                    <input type="date" className="control" value={c.start} onChange={(e) => update(i, { start: e.target.value })} />
-                  </label>
-                  <label className="mini">
-                    End
-                    <input type="date" className="control" value={c.end} onChange={(e) => update(i, { end: e.target.value })} />
-                  </label>
-                </div>
-                <div className="hint">
-                  Shape: {c.shape.type}
-                  {c.shape.type === "phases" ? ` (${c.shape.phases.length} phases)` : ""} — edit shapes in the YAML tab.
-                </div>
-              </>
-            )}
-            {facetDim && (
-              <div className="mini" style={{ marginTop: 6 }}>
-                <TagSelect tags={c.tags} onSet={(t) => update(i, { tags: t })} />
-              </div>
-            )}
-          </div>
-        ))}
-        <div className="add-row" style={{ display: "flex", gap: 8 }}>
-          <button className="btn" onClick={addRecurring}>
-            + Recurring
-          </button>
-          <button className="btn" onClick={addSpanning}>
-            + Spanning
-          </button>
-        </div>
+  const consumerColumns: ColumnDef<Consumer, any>[] = [
+    expander,
+    { accessorKey: "label", header: "Name", cell: (i) => <span className="dt-name">{i.getValue<string>()}</span> },
+    {
+      accessorKey: "kind",
+      header: "Kind",
+      cell: (i) => <span className={`kind-badge kind-${i.getValue<string>()}`}>{i.getValue<string>()}</span>,
+    },
+    { accessorKey: "amount", header: "Amount", cell: (i) => <span className="dt-num">{num(i.getValue<number>())}</span> },
+    { accessorKey: "track", header: "Track", cell: (i) => trackCell(i.getValue<string>()) },
+    {
+      id: "when",
+      header: "When",
+      accessorFn: (c) => (c.kind === "spanning" ? c.start : "\uffff"),
+      cell: ({ row }) => <span className="dt-muted">{consumerWhen(row.original)}</span>,
+    },
+    ...(facetDim ? [tagColumn<Consumer>((c) => c.tags?.[facet!])] : []),
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <button className="del" onClick={() => removeConsumer(row.original.id)} title="Delete">
+          ✕
+        </button>
+      ),
+    },
+  ];
+
+  const renderConsumerForm = (c: Consumer): ReactNode => (
+    <div className="dt-form">
+      <div className="field">
+        <label>Name</label>
+        <input className="control" value={c.label} onChange={(e) => updateConsumer(c.id, { label: e.target.value })} />
       </div>
-    );
-  }
+      <div className="grid2">
+        <label className="mini">
+          {c.kind === "spanning" && c.shape.type !== "flat" ? "Base amount" : "Amount / day"}
+          <input
+            type="number"
+            className="control"
+            value={c.amount}
+            onChange={(e) => updateConsumer(c.id, { amount: Number(e.target.value) })}
+          />
+        </label>
+        <label className="mini">
+          Track (optional)
+          <input
+            className="control"
+            value={c.track ?? ""}
+            placeholder="—"
+            onChange={(e) => updateConsumer(c.id, { track: e.target.value || undefined })}
+          />
+        </label>
+      </div>
+      {c.kind === "spanning" && (
+        <>
+          <div className="grid2">
+            <label className="mini">
+              Start
+              <input type="date" className="control" value={c.start} onChange={(e) => updateConsumer(c.id, { start: e.target.value })} />
+            </label>
+            <label className="mini">
+              End
+              <input type="date" className="control" value={c.end} onChange={(e) => updateConsumer(c.id, { end: e.target.value })} />
+            </label>
+          </div>
+          <div className="hint">
+            Shape: {c.shape.type}
+            {c.shape.type === "phases" ? ` (${c.shape.phases.length} phases)` : ""} — edit shapes in the YAML tab.
+          </div>
+        </>
+      )}
+      {facetDim && (
+        <label className="mini tag-field">
+          {facetDim.label}
+          <TagSelect tags={c.tags} onSet={(t) => updateConsumer(c.id, { tags: t })} />
+        </label>
+      )}
+    </div>
+  );
+
+  // ---- Capacities ----
+  const updateCapacity = (id: string, part: Partial<Capacity>) =>
+    patch({ capacities: scenario.capacities.map((c) => (c.id === id ? { ...c, ...part } : c)) });
+  const removeCapacity = (id: string) => patch({ capacities: scenario.capacities.filter((c) => c.id !== id) });
+  const addCapacity = () => {
+    const id = uid("cap");
+    patch({ capacities: [...scenario.capacities, { id, label: "New capacity", amount: 100 }] });
+    setExpandId(id);
+  };
+
+  const capacityColumns: ColumnDef<Capacity, any>[] = [
+    expander,
+    { accessorKey: "label", header: "Name", cell: (i) => <span className="dt-name">{i.getValue<string>()}</span> },
+    { accessorKey: "amount", header: "Amount / day", cell: (i) => <span className="dt-num">{num(i.getValue<number>())}</span> },
+    { accessorKey: "track", header: "Track", cell: (i) => trackCell(i.getValue<string>()) },
+    ...(facetDim ? [tagColumn<Capacity>((c) => c.tags?.[facet!])] : []),
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <button className="del" onClick={() => removeCapacity(row.original.id)} title="Delete">
+          ✕
+        </button>
+      ),
+    },
+  ];
+
+  const renderCapacityForm = (c: Capacity): ReactNode => (
+    <div className="dt-form">
+      <div className="field">
+        <label>Name</label>
+        <input className="control" value={c.label} onChange={(e) => updateCapacity(c.id, { label: e.target.value })} />
+      </div>
+      <div className="grid2">
+        <label className="mini">
+          Amount / day
+          <input
+            type="number"
+            className="control"
+            value={c.amount}
+            onChange={(e) => updateCapacity(c.id, { amount: Number(e.target.value) })}
+          />
+        </label>
+        <label className="mini">
+          Track (optional)
+          <input
+            className="control"
+            value={c.track ?? ""}
+            placeholder="—"
+            onChange={(e) => updateCapacity(c.id, { track: e.target.value || undefined })}
+          />
+        </label>
+      </div>
+      {facetDim && (
+        <label className="mini tag-field">
+          {facetDim.label}
+          <TagSelect tags={c.tags} onSet={(t) => updateCapacity(c.id, { tags: t })} />
+        </label>
+      )}
+    </div>
+  );
+
+  // ---- Reducers ----
+  const updateReducer = (id: string, part: Partial<Reducer>) =>
+    patch({ reducers: scenario.reducers.map((r) => (r.id === id ? { ...r, ...part } : r)) });
+  const removeReducer = (id: string) => patch({ reducers: scenario.reducers.filter((r) => r.id !== id) });
+  const addReducer = () => {
+    const id = uid("red");
+    patch({
+      reducers: [
+        ...scenario.reducers,
+        { id, label: "New reducer", multiplier: 0.5, start: scenario.config.start, end: scenario.config.end },
+      ],
+    });
+    setExpandId(id);
+  };
+
+  const reducerColumns: ColumnDef<Reducer, any>[] = [
+    expander,
+    { accessorKey: "label", header: "Name", cell: (i) => <span className="dt-name">{i.getValue<string>()}</span> },
+    {
+      accessorKey: "multiplier",
+      header: "Multiplier",
+      cell: (i) => <span className="dt-num">×{i.getValue<number>()}</span>,
+    },
+    { accessorKey: "track", header: "Track", cell: (i) => trackCell(i.getValue<string>()) },
+    {
+      id: "when",
+      header: "When",
+      accessorFn: (r) => r.start,
+      cell: ({ row }) => (
+        <span className="dt-muted">
+          {shortDate(row.original.start)} – {shortDate(row.original.end)}
+        </span>
+      ),
+    },
+    ...(facetDim ? [tagColumn<Reducer>((r) => r.tags?.[facet!])] : []),
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <button className="del" onClick={() => removeReducer(row.original.id)} title="Delete">
+          ✕
+        </button>
+      ),
+    },
+  ];
+
+  const renderReducerForm = (r: Reducer): ReactNode => (
+    <div className="dt-form">
+      <div className="field">
+        <label>Name</label>
+        <input className="control" value={r.label} onChange={(e) => updateReducer(r.id, { label: e.target.value })} />
+      </div>
+      <div className="grid2">
+        <label className="mini">
+          Multiplier (0–1)
+          <input
+            type="number"
+            step="0.05"
+            min="0"
+            max="1"
+            className="control"
+            value={r.multiplier}
+            onChange={(e) => updateReducer(r.id, { multiplier: Number(e.target.value) })}
+          />
+        </label>
+        <label className="mini">
+          Track (optional)
+          <input
+            className="control"
+            value={r.track ?? ""}
+            placeholder="—"
+            onChange={(e) => updateReducer(r.id, { track: e.target.value || undefined })}
+          />
+        </label>
+      </div>
+      <div className="grid2">
+        <label className="mini">
+          Start
+          <input type="date" className="control" value={r.start} onChange={(e) => updateReducer(r.id, { start: e.target.value })} />
+        </label>
+        <label className="mini">
+          End
+          <input type="date" className="control" value={r.end} onChange={(e) => updateReducer(r.id, { end: e.target.value })} />
+        </label>
+      </div>
+      {facetDim && (
+        <label className="mini tag-field">
+          {facetDim.label}
+          <TagSelect tags={r.tags} onSet={(t) => updateReducer(r.id, { tags: t })} />
+        </label>
+      )}
+    </div>
+  );
 
   return (
     <div className="section">
@@ -276,9 +450,38 @@ export function EntryTable({ scenario, onChange }: Props) {
           Reducers ({scenario.reducers.length})
         </button>
       </div>
-      {tab === "capacities" && renderCapacities()}
-      {tab === "reducers" && renderReducers()}
-      {tab === "consumers" && renderConsumers()}
+
+      {tab === "consumers" && (
+        <>
+          <DataTable data={scenario.consumers} columns={consumerColumns} renderSubRow={renderConsumerForm} expandId={expandId} />
+          <div className="add-row" style={{ display: "flex", gap: 8 }}>
+            <button className="btn" onClick={() => addConsumer("recurring")}>
+              + Recurring
+            </button>
+            <button className="btn" onClick={() => addConsumer("spanning")}>
+              + Spanning
+            </button>
+          </div>
+        </>
+      )}
+
+      {tab === "capacities" && (
+        <>
+          <DataTable data={scenario.capacities} columns={capacityColumns} renderSubRow={renderCapacityForm} expandId={expandId} />
+          <button className="btn add-row" onClick={addCapacity}>
+            + Add capacity
+          </button>
+        </>
+      )}
+
+      {tab === "reducers" && (
+        <>
+          <DataTable data={scenario.reducers} columns={reducerColumns} renderSubRow={renderReducerForm} expandId={expandId} />
+          <button className="btn add-row" onClick={addReducer}>
+            + Add reducer
+          </button>
+        </>
+      )}
     </div>
   );
 }

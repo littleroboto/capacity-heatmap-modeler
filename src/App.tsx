@@ -79,7 +79,6 @@ export function App() {
       <div className="workspace">
         <aside className="sidebar">
           <ConfigPanel config={scenario.config} onChange={patchConfig} />
-          <EntryTable scenario={scenario} onChange={setScenario} />
           <div className="yaml-toggle">
             <button className="btn ghost" onClick={() => setShowYaml((v) => !v)}>
               {showYaml ? "▾ Hide YAML" : "▸ Edit raw YAML"}
@@ -89,6 +88,9 @@ export function App() {
         </aside>
         <main className="main">
           <Poster ref={posterRef} scenario={scenario} result={result} kpis={kpis} />
+          <div className="data-editor">
+            <EntryTable scenario={scenario} onChange={setScenario} />
+          </div>
         </main>
       </div>
     </div>

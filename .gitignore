@@ -1,0 +1,20 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+.vite/
+coverage/
+
+# generated: learn materials are synced from teaching/ into public/ at build time
+public/learn/
+public/CONTEXT.md
+public/docs/
+
+# editor
+*.log
+.idea/
+.vscode/
+
+# workflow file needs the gh "workflow" OAuth scope to push; deploying via gh-pages branch for now
+.github/workflows/

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference · Capacity Composition</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Reference sheet</p>
+  <h1>Capacity composition</h1>
+  <p class="lede">How to combine capacity from more than one source. Keep this next to you while modelling.</p>
+
+  <h2>The two composition rules</h2>
+  <div class="cards">
+    <div class="card sum">
+      <h3>Sum &mdash; parallel / fungible</h3>
+      <p class="formula">C = c&#8321; + c&#8322; + &hellip; + c&#8345;</p>
+      <p>Sources do <strong>interchangeable</strong> work; any unit can absorb the load. More units &rarr; more capacity.</p>
+      <p class="q-scenario">3 cross-trained agents; identical machines; bench of developers.</p>
+    </div>
+    <div class="card min">
+      <h3>Min &mdash; coupled / serial</h3>
+      <p class="formula">C = min(c&#8321;, c&#8322;, &hellip;, c&#8345;)</p>
+      <p>Sources must work <strong>together</strong> to make output; the weakest link caps the whole. Adding to a non-constraint does nothing.</p>
+      <p class="q-scenario">1 dev + 1 CI pipeline; cooks + one fryer; a specialist hand-off.</p>
+    </div>
+  </div>
+
+  <div class="note key"><strong>Test to tell them apart:</strong> ask &ldquo;if I add one more unit of <em>this</em> source, does total output go up?&rdquo; Yes for every source &rarr; <strong>sum</strong>. Only for one source &rarr; that source is the <strong>constraint</strong>; use <strong>min</strong>.</div>
+
+  <h2>The scale ladder</h2>
+  <table style="border-collapse:collapse; width:100%; font-size:0.95rem;">
+    <tr style="text-align:left; border-bottom:1px solid var(--rule);">
+      <th style="padding:0.4rem 0;">Scale</th><th>What it is</th><th>Rule</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:0.4rem 0;"><strong>Individual</strong></td><td>one person / one resource</td><td>trivial &mdash; a single capacity</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:0.4rem 0;"><strong>Composite</strong></td><td>person + coupled resource (human or infra)</td><td>usually <strong>min</strong> (bottleneck)</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:0.4rem 0;"><strong>Multi-track</strong></td><td>several related human/infra tracks</td><td>identify the constraint <em>per output</em></td></tr>
+    <tr><td style="padding:0.4rem 0;"><strong>Department / business</strong></td><td>many teams toward a goal</td><td>output gated by the constraint dept (TOC)</td></tr>
+  </table>
+
+  <h2>Utilisation bands</h2>
+  <p>Utilisation = load &divide; effective capacity. Higher is <em>not</em> better.</p>
+  <ul>
+    <li><strong>&lt; ~60%</strong> &mdash; slack / over-provisioned (a cost).</li>
+    <li><strong>~70&ndash;85%</strong> &mdash; healthy, sustainable band. Aim here.<sup class="cite"><a href="https://www.aihr.com/blog/workforce-capacity-planning/">1</a></sup></li>
+    <li><strong>&gt; ~90%</strong> &mdash; fragile; queues and delays grow fast; burnout / breakage risk.</li>
+  </ul>
+
+  <div class="note">Effective capacity is smaller than raw capacity. Subtract non-productive time (leave, meetings, admin &mdash; often 5&ndash;8%+) and apply a focus factor before comparing to demand.<sup class="cite"><a href="https://toggl.com/blog/capacity-planning-guide">2</a></sup></div>
+
+  <p class="nav">
+    <a href="../lessons/0001-sum-vs-bottleneck.html">&larr; Lesson 1</a>
+    <a href="../MISSION.md">Mission</a>
+    <a href="../../CONTEXT.md">Glossary (CONTEXT.md)</a>
+  </p>
+</div>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 · Does capacity add up, or does the weakest link win?</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/quiz.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 1</p>
+  <h1>Does capacity add up, or does the weakest link win?</h1>
+  <p class="lede">The single decision behind modelling a person, a person&nbsp;+&nbsp;a resource, several tracks, or a whole department: do the sources <em>sum</em>, or is one of them a <em>bottleneck</em>?</p>
+
+  <p>You already model a single Subject's capacity well (Base Capacity, Reducers, one Declared Unit). The moment a Subject has <strong>more than one capacity source</strong> &mdash; a person plus a CI pipeline, two coupled tracks, five departments &mdash; you face one fork, and getting it wrong makes the heatmap confidently lie.</p>
+
+  <h2>The fork</h2>
+  <div class="cards">
+    <div class="card sum">
+      <h3>Sum</h3>
+      <p class="formula">C = c&#8321; + c&#8322; + &hellip;</p>
+      <p>Sources are <strong>parallel and interchangeable</strong>. Any of them can take the work. Three cross-trained people get through three people's worth.</p>
+    </div>
+    <div class="card min">
+      <h3>Min (bottleneck)</h3>
+      <p class="formula">C = min(c&#8321;, c&#8322;, &hellip;)</p>
+      <p>Sources are <strong>coupled in series</strong> &mdash; all needed to produce output. The slowest one sets the pace. This is Goldratt's constraint: <em>&ldquo;no chain is stronger than its weakest link.&rdquo;</em><sup class="cite"><a href="https://www.tocinstitute.org/theory-of-constraints.html">1</a></sup></p>
+    </div>
+  </div>
+
+  <div class="note key"><strong>The one-question test:</strong> &ldquo;If I add one more unit of <em>this</em> source, does total output rise?&rdquo; If yes for <em>every</em> source &rarr; <strong>sum</strong>. If only one source moves the needle &rarr; that's the <strong>constraint</strong>, use <strong>min</strong>, and adding anywhere else is wasted.<sup class="cite"><a href="https://www.leanproduction.com/theory-of-constraints/">2</a></sup></div>
+
+  <h2>Why it bites: the composite case</h2>
+  <p>Take your &ldquo;person + infra&rdquo; example. One engineer who can prepare 20 deployments a day, backed by a CI pipeline that can only run 8 builds a day. Naively summing (20 + 8 = 28) is nonsense &mdash; they measure different steps of one pipeline. The real throughput is <strong>min(20, 8) = 8</strong>. Hire a second engineer and it's <em>still 8</em>: you added to a non-constraint. That is the entire point of the Theory of Constraints.<sup class="cite"><a href="http://www.scholarpedia.org/article/Theory_of_Constraints">3</a></sup></p>
+
+  <h2>Your turn — classify each scenario</h2>
+  <p>For each, decide whether the sources <strong>sum</strong> or the <strong>weakest link caps</strong> them.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">A support team of 4 agents, all trained on every ticket type.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="sum"
+       data-explain-sum="Right. Fully interchangeable agents are parallel — total = the sum, and each extra agent adds real capacity. This is the case your ADR-0002 rollup-by-summation is built for."
+       data-explain-min="Not here — the agents are interchangeable, so any of them can take any ticket. Adding an agent raises output, so they sum."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A copywriter who drafts campaigns and one legal reviewer who must sign off every one before it ships.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. They're in series — nothing ships without review. Effective throughput = min(draft rate, review rate). A second copywriter doesn't help if legal is the constraint."
+       data-explain-sum="Careful — they're coupled in series, not parallel. Output can't exceed whichever of drafting or review is slower, so it's min, not sum."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A QSR country's promo output needs both marketing budget and kitchen throughput to run a limited-time offer.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. Both are required together, in different units — you can't add GBP to covers. The LTO is gated by whichever runs out first, so model the tracks separately and take the binding one."
+       data-explain-sum="They're not interchangeable (and not even the same unit) — a promo needs both, so the binding track caps it. That's min."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A whole business: Sales can close 100 deals/mo, Onboarding can activate 60/mo, Support can serve 200/mo.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. Customers flow through all three in series, so realised throughput ≈ min(100, 60, 200) = 60/mo. Onboarding is the constraint; expanding Sales or Support just piles up work in front of it."
+       data-explain-sum="These are sequential stages, not parallel capacity. The department with the least throughput (Onboarding, 60) caps the business — min, not sum."></p>
+  </div>
+
+  <h2>Feel it — the composition simulator</h2>
+  <p>Three related tracks. Flip between treating them as parallel (sum) vs coupled (min) and watch effective capacity move.</p>
+  <div class="sim" id="sim">
+    <div class="tracks">
+      <label>Track 1<br><input type="number" id="t1" value="20" min="0"></label>
+      <label>Track 2<br><input type="number" id="t2" value="8" min="0"></label>
+      <label>Track 3<br><input type="number" id="t3" value="15" min="0"></label>
+    </div>
+    <div class="toggle">
+      <label><input type="radio" name="mode" value="min" checked> Coupled (min)</label>
+      <label><input type="radio" name="mode" value="sum"> Parallel (sum)</label>
+    </div>
+    <div class="out">Effective capacity: <b id="simOut">8</b> <span id="simHint" class="lo"></span></div>
+  </div>
+
+  <div class="note build">Your <code>rollup = summation</code> decision (<a href="../../docs/adr/0002-subject-as-faceting-level.md">ADR-0002</a>) is exactly the <strong>sum</strong> rule — and it's correct <em>only for fungible sources</em>. Coupled tracks (person + infra, multi-stage departments) need <strong>min</strong>. That's a genuine gap in the current model: a candidate <strong>ADR-0004</strong> ("composite capacity: sum for fungible, min for coupled") and possibly a per-Subject "composition" setting. Flagging, not deciding, for now.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read this next (primary source)</p>
+    <p style="margin:0;"><strong><em>The Goal</em> — Eliyahu Goldratt.</strong> The novel that introduced the Theory of Constraints; the plant-tour / bottleneck chapters are the clearest intuition you'll find for min-vs-sum. Short overview: <a href="https://www.leanproduction.com/theory-of-constraints/">Lean Production — Theory of Constraints</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;How do I show a bottleneck on the heatmap?&rdquo;, &ldquo;What if a track is <em>sometimes</em> the constraint?&rdquo;, or &ldquo;Should composition be per-Subject or per-Scenario?&rdquo; Next lesson can go into <em>effective</em> capacity (shrinkage &amp; focus factor) or utilisation target bands — your call.</p>
+
+  <p class="nav">
+    <a href="../reference/capacity-composition.html">Reference: capacity composition &rarr;</a>
+    <a href="../MISSION.md">Mission</a>
+    <a href="../../CONTEXT.md">Glossary</a>
+  </p>
+</div>
+
+<script>
+  (function () {
+    var ids = ["t1", "t2", "t3"];
+    function recompute() {
+      var vals = ids.map(function (id) { return parseFloat(document.getElementById(id).value) || 0; });
+      var mode = document.querySelector('input[name=mode]:checked').value;
+      var out = mode === "sum"
+        ? vals.reduce(function (a, b) { return a + b; }, 0)
+        : Math.min.apply(null, vals);
+      document.getElementById("simOut").textContent = out;
+      var hint = document.getElementById("simHint");
+      if (mode === "min") {
+        var i = vals.indexOf(out);
+        hint.textContent = "\u2190 Track " + (i + 1) + " is the constraint";
+      } else {
+        hint.textContent = "";
+      }
+    }
+    document.getElementById("sim").addEventListener("input", recompute);
+    recompute();
+  })();
+</script>
+</body>
+</html>

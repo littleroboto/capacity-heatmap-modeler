@@ -38,7 +38,15 @@ export function Learn() {
       <p className="lead">
         Short, interactive lessons on the ideas behind this tool — utilisation bands, coupled vs
         fungible capacity, additive vs subtractive modes, and the traps in rolling up intensities.
+        Every lesson reads at three depths: <strong>Overview</strong>, <strong>In practice</strong>,
+        and <strong>In depth</strong> — pick the one that suits you.
       </p>
+
+      <a className="intro-link" href={`${base}learn/index.html`} target="_blank" rel="noreferrer">
+        <span className="intro-kicker">Start here</span>
+        <span className="intro-title">The course intro &rarr;</span>
+        <span className="intro-sub">Overview of all lessons, how the three depth levels work, and the glossary.</span>
+      </a>
 
       {failed && (
         <p className="empty">

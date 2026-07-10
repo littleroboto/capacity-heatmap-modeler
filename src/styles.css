@@ -257,6 +257,19 @@ select.control:focus, input.control:focus, textarea.control:focus {
 .learn .card h3 { margin: 6px 0 4px; font-size: 15px; }
 .learn .card p { margin: 0; color: var(--ink-soft); font-size: 13px; }
 .learn .empty { color: var(--ink-faint); margin-top: 20px; }
+.learn .intro-link {
+  display: block; text-decoration: none; margin-top: 20px;
+  border: 1px solid var(--accent); border-radius: var(--radius);
+  padding: 16px 18px; background: var(--accent-soft); color: var(--ink);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.learn .intro-link:hover { transform: translateY(-2px); box-shadow: 0 0 0 3px var(--accent-soft); }
+.learn .intro-link .intro-kicker {
+  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--accent); font-weight: 650;
+}
+.learn .intro-link .intro-title { display: block; font-size: 17px; font-weight: 650; margin: 4px 0 3px; color: var(--accent); }
+.learn .intro-link .intro-sub { display: block; font-size: 13px; color: var(--ink-soft); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {

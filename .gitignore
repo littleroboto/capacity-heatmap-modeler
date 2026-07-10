@@ -6,7 +6,7 @@ dist-ssr/
 .vite/
 coverage/
 
-# generated: learn materials are synced from teaching/ into public/ at build time
+# generated: learn materials are synced from course/ into public/ at build time
 public/learn/
 public/CONTEXT.md
 public/docs/

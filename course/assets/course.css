@@ -1,0 +1,277 @@
+/* course.css — shared stylesheet for all Capacity Modeling lessons.
+   Tufte-inspired: quiet palette, generous measure, serif body, printable. */
+
+:root {
+  --ink:        #1a1a17;
+  --ink-soft:   #55534d;
+  --paper:      #fdfcf8;
+  --rule:       #e4e0d6;
+  --accent:     #9a3b2e;   /* deep red — "hot"/overload */
+  --cool:       #2f6f8f;   /* blue — "cold"/spare */
+  --good:       #2e6f4f;
+  --bad:        #9a3b2e;
+  --amber:      #b7791f;
+  --code-bg:    #f3f0e7;
+  --measure:    38rem;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 18px; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  line-height: 1.55;
+  padding: 4rem 2rem 6rem;
+}
+
+.wrap { max-width: var(--measure); margin: 0 auto; }
+
+/* Header */
+.kicker {
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin: 0 0 0.5rem;
+}
+h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.4rem; font-weight: 600; }
+h2 { font-size: 1.35rem; margin: 2.4rem 0 0.6rem; font-weight: 600; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; font-weight: 600; }
+.lede { font-size: 1.12rem; color: var(--ink-soft); margin: 0.6rem 0 1.6rem; }
+
+p, li { max-width: var(--measure); }
+a { color: var(--cool); text-underline-offset: 2px; }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 2.4rem 0; }
+
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+code, .mono {
+  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 0.86em;
+  background: var(--code-bg);
+  padding: 0.08em 0.35em;
+  border-radius: 3px;
+}
+
+/* Callouts */
+.note {
+  border-left: 3px solid var(--rule);
+  padding: 0.2rem 0 0.2rem 1rem;
+  color: var(--ink-soft);
+  margin: 1.2rem 0;
+  font-size: 0.96rem;
+}
+.note.key { border-left-color: var(--accent); color: var(--ink); }
+.note.build {
+  border-left-color: var(--cool);
+  background: #f0f5f8;
+  padding: 0.7rem 1rem;
+}
+.note.build::before {
+  content: "IN THE TOOL";
+  display: block;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.64rem; letter-spacing: 0.12em;
+  color: var(--cool); margin-bottom: 0.3rem;
+}
+
+/* Two-rule cards */
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.4rem 0; }
+.card {
+  border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.1rem;
+  background: #fff;
+}
+.card h3 { margin-top: 0; }
+.card .formula {
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 1.1rem; margin: 0.4rem 0 0.6rem;
+}
+.card.sum { border-top: 4px solid var(--cool); }
+.card.min { border-top: 4px solid var(--accent); }
+@media (max-width: 620px) { .cards { grid-template-columns: 1fr; } }
+
+/* Quiz widget (see quiz.js) */
+.quiz {
+  border: 1px solid var(--rule); border-radius: 8px;
+  padding: 1rem 1.1rem; margin: 1.1rem 0; background: #fff;
+}
+.q-prompt { font-weight: 600; margin: 0 0 0.7rem; }
+.q-scenario { color: var(--ink-soft); font-style: italic; }
+.q-options { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.q-opt {
+  font: inherit; font-size: 0.95rem;
+  padding: 0.45rem 0.9rem; border: 1px solid var(--rule);
+  background: var(--paper); border-radius: 999px; cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease;
+}
+.q-opt:hover { background: #f1ede2; }
+.q-opt:active { transform: translateY(1px); }
+.q-opt.is-correct { background: #dcefe3; border-color: var(--good); color: var(--good); }
+.q-opt.is-wrong   { background: #f6e2df; border-color: var(--bad);  color: var(--bad); }
+.q-feedback {
+  margin: 0.8rem 0 0; font-size: 0.95rem;
+  opacity: 0; max-height: 0; overflow: hidden; transition: opacity 0.2s ease;
+}
+.q-feedback.show { opacity: 1; max-height: 20rem; }
+.q-feedback.good { color: var(--good); }
+.q-feedback.bad  { color: var(--bad); }
+
+/* Simulator */
+.sim { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.1rem; background: #fff; margin: 1.2rem 0; }
+.sim label { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.85rem; color: var(--ink-soft); display: block; }
+.sim input[type=number] { font: inherit; width: 6rem; padding: 0.3rem 0.4rem; border: 1px solid var(--rule); border-radius: 5px; }
+.sim .tracks { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0.6rem 0; }
+.sim .toggle { display: flex; gap: 0.5rem; align-items: center; margin: 0.6rem 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.9rem; }
+.sim .out { font-size: 1.25rem; margin-top: 0.6rem; }
+.sim .out b { font-size: 1.6rem; }
+.sim .out .lo { color: var(--accent); }
+
+/* Footer / next steps */
+.primary-source {
+  background: #f0f5f8; border: 1px solid #d5e3ea; border-radius: 8px;
+  padding: 1rem 1.1rem; margin: 2rem 0 1rem;
+}
+.primary-source .kicker { color: var(--cool); }
+.ask {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem; color: var(--ink-soft);
+  border-top: 1px dashed var(--rule); padding-top: 1rem; margin-top: 2.4rem;
+}
+.nav { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.85rem; margin-top: 1.4rem; }
+.nav a { margin-right: 1.2rem; }
+
+sup.cite { font-size: 0.7em; }
+sup.cite a { text-decoration: none; }
+
+/* ============================================================
+   THREE-LEVEL DEPTH SWITCHER  (levels.js)
+   A single sticky bar sets the depth for the whole page.
+   Content is wrapped in .lvl.lvl-easy / .lvl-intermediate / .lvl-expert
+   and shown/hidden by the body[data-level] attribute.
+   ============================================================ */
+.level-bar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
+  margin: -4rem -2rem 2rem; padding: 0.7rem 2rem;
+  background: rgba(253, 252, 248, 0.92);
+  backdrop-filter: saturate(1.2) blur(6px);
+  border-bottom: 1px solid var(--rule);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.level-bar .lb-label {
+  font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-soft); margin-right: 0.4rem;
+}
+.level-btn {
+  font: inherit; font-size: 0.82rem; cursor: pointer;
+  padding: 0.32rem 0.8rem; border-radius: 999px;
+  border: 1px solid var(--rule); background: #fff; color: var(--ink-soft);
+  display: inline-flex; flex-direction: column; line-height: 1.15;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.level-btn small { font-size: 0.62rem; opacity: 0.7; }
+.level-btn:hover { background: #f1ede2; }
+.level-btn[aria-pressed="true"] {
+  color: #fff; border-color: transparent; font-weight: 600;
+}
+.level-btn[data-level="easy"][aria-pressed="true"]         { background: var(--good); }
+.level-btn[data-level="intermediate"][aria-pressed="true"] { background: var(--cool); }
+.level-btn[data-level="expert"][aria-pressed="true"]       { background: var(--accent); }
+
+/* Depth-gated content */
+.lvl { display: none; }
+body[data-level="easy"]         .lvl-easy,
+body[data-level="intermediate"] .lvl-intermediate,
+body[data-level="expert"]       .lvl-expert { display: block; }
+
+/* An inline level badge, e.g. next to an aside only shown at one level */
+.lvl-badge {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  border-radius: 4px; padding: 0.1em 0.45em; vertical-align: middle;
+  border: 1px solid var(--rule); color: var(--ink-soft);
+}
+.lvl-badge.easy    { color: var(--good);   border-color: var(--good); }
+.lvl-badge.inter   { color: var(--cool);   border-color: var(--cool); }
+.lvl-badge.expert  { color: var(--accent); border-color: var(--accent); }
+
+/* ============================================================
+   MINI HEATMAP  — small blue→red day grids for illustration
+   ============================================================ */
+.heat {
+  display: grid; gap: 3px; margin: 1.1rem 0;
+  grid-template-columns: repeat(var(--cols, 14), 1fr);
+  max-width: 24rem;
+}
+.heat .cell {
+  aspect-ratio: 1 / 1; border-radius: 3px; background: #eee;
+}
+.heat-legend {
+  display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0 1rem;
+  font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.78rem; color: var(--ink-soft);
+}
+.heat-ramp {
+  height: 0.7rem; width: 8rem; border-radius: 999px;
+  background: linear-gradient(90deg, #2f6f8f 0%, #eadfae 55%, #9a3b2e 100%);
+}
+
+/* ============================================================
+   DATA TABLES  (definitions, when-to-use grids)
+   ============================================================ */
+table.grid { border-collapse: collapse; width: 100%; margin: 1.2rem 0; font-size: 0.95rem; }
+table.grid th, table.grid td {
+  border: 1px solid var(--rule); padding: 0.5rem 0.7rem; text-align: left; vertical-align: top;
+}
+table.grid th {
+  font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.78rem;
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); background: var(--code-bg);
+}
+
+/* ============================================================
+   STEPS / DECISION LIST
+   ============================================================ */
+ol.steps { counter-reset: step; list-style: none; padding-left: 0; }
+ol.steps li {
+  position: relative; padding: 0.2rem 0 0.6rem 2.4rem; margin: 0;
+}
+ol.steps li::before {
+  counter-increment: step; content: counter(step);
+  position: absolute; left: 0; top: 0.1rem;
+  width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  background: var(--cool); color: #fff; font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+}
+
+/* Answer-key / takeaway box */
+.note.takeaway { border-left-color: var(--good); background: #eef5f0; padding: 0.7rem 1rem; }
+.note.takeaway::before {
+  content: "TAKEAWAY"; display: block;
+  font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.64rem;
+  letter-spacing: 0.12em; color: var(--good); margin-bottom: 0.3rem;
+}
+
+@media (max-width: 620px) {
+  .level-bar { margin: -4rem -2rem 1.4rem; padding: 0.6rem 1rem; }
+}
+
+@media print {
+  body { background: #fff; padding: 0; font-size: 12pt; }
+  .q-opt { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ask, .nav, .level-bar { display: none; }
+  .q-feedback { opacity: 1 !important; max-height: none !important; }
+  .heat .cell, .heat-ramp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* In print, show all depth levels so nothing is lost on paper */
+  .lvl { display: block !important; }
+  .lvl::before {
+    content: attr(data-print-label); display: block;
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.6rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft);
+    margin-top: 0.6rem;
+  }
+}

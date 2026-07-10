@@ -1,20 +1,25 @@
-// Copies the `teach`-skill training materials into public/ so they ship with
-// the deployed site. Lessons are standalone HTML with relative links; we mirror
-// the repo layout under public/ so those links resolve on GitHub Pages.
+// Copies the end-user training course into public/ so it ships with the
+// deployed site and powers the in-app Learn tab. Lessons are standalone HTML
+// with relative links; we mirror the repo layout under public/ so those links
+// resolve on GitHub Pages.
 //
-//   teaching/{lessons,reference,assets,MISSION.md}  ->  public/learn/...
-//   CONTEXT.md                                      ->  public/CONTEXT.md
-//   docs/                                           ->  public/docs/
+//   course/{lessons,reference,assets}          ->  public/learn/...
+//   course/{index.html,MISSION.md,RESOURCES.md} ->  public/learn/...
+//   CONTEXT.md                                 ->  public/CONTEXT.md
+//   docs/                                      ->  public/docs/
 //
 // It also writes public/learn/index.json listing the lessons for the in-app
 // Learn view.
+//
+// NOTE: `../teaching/` is the builder's *personal* learning workspace and is
+// deliberately NOT shipped — `course/` is the polished, three-depth product.
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const teaching = path.join(root, "teaching");
+const source = path.join(root, "course");
 const publicDir = path.join(root, "public");
 const learnDir = path.join(publicDir, "learn");
 
@@ -39,10 +44,24 @@ async function copyFile(src, dest) {
   await fs.copyFile(src, dest);
 }
 
+// Decode the handful of HTML entities our lessons use, so index.json holds
+// plain text (React renders these titles/ledes as text, not HTML).
+function decodeEntities(s) {
+  const named = {
+    "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'",
+    "&nbsp;": " ", "&mdash;": "\u2014", "&ndash;": "\u2013",
+    "&hellip;": "\u2026", "&rarr;": "\u2192", "&ldquo;": "\u201c", "&rdquo;": "\u201d",
+  };
+  return s
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&[a-z]+;/gi, (e) => (e in named ? named[e] : e));
+}
+
 // Parse "<h1>…</h1>" and "<p class=\"lede\">…</p>" from a lesson for the index.
 function extract(html, re) {
   const m = html.match(re);
-  return m ? m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() : "";
+  if (!m) return "";
+  return decodeEntities(m[1].replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
 }
 
 async function indexHtmlDir(subdir) {
@@ -66,10 +85,13 @@ async function main() {
   await fs.rm(learnDir, { recursive: true, force: true });
   await fs.mkdir(learnDir, { recursive: true });
 
-  await copyDir(path.join(teaching, "lessons"), path.join(learnDir, "lessons"));
-  await copyDir(path.join(teaching, "reference"), path.join(learnDir, "reference"));
-  await copyDir(path.join(teaching, "assets"), path.join(learnDir, "assets"));
-  await copyFile(path.join(teaching, "MISSION.md"), path.join(learnDir, "MISSION.md"));
+  await copyDir(path.join(source, "lessons"), path.join(learnDir, "lessons"));
+  await copyDir(path.join(source, "reference"), path.join(learnDir, "reference"));
+  await copyDir(path.join(source, "assets"), path.join(learnDir, "assets"));
+  // Course home + docs the lessons cite via ../index.html, ../MISSION.md, ../RESOURCES.md
+  await copyFile(path.join(source, "index.html"), path.join(learnDir, "index.html"));
+  await copyFile(path.join(source, "MISSION.md"), path.join(learnDir, "MISSION.md"));
+  await copyFile(path.join(source, "RESOURCES.md"), path.join(learnDir, "RESOURCES.md"));
 
   // Mirror docs the lessons link to (so ../../CONTEXT.md, ../../docs/… resolve).
   await copyFile(path.join(root, "CONTEXT.md"), path.join(publicDir, "CONTEXT.md"));

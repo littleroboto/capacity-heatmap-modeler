@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 4 · From raw to effective capacity</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson-local: a tiny before/after "shrinking bar" for the Easy picture. */
+  .cap-bar { display:flex; align-items:flex-end; gap:0.5rem; margin:1rem 0 0.4rem; }
+  .cap-bar .col { text-align:center; font-family:ui-sans-serif,system-ui,sans-serif; font-size:0.72rem; color:var(--ink-soft); }
+  .cap-bar .stack { width:2.4rem; border:1px solid var(--rule); border-radius:4px; overflow:hidden; margin:0 auto 0.35rem; }
+  .cap-bar .stack i { display:block; height:0.55rem; border-bottom:1px solid #fff; }
+  .cap-bar .fill { background:#8fb4c4; }
+  .cap-bar .gone { background:#e6e3da; }
+</style>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 4</p>
+  <h1>From raw to effective capacity</h1>
+  <p class="lede">The number you <em>declare</em> is rarely the room you actually have. Holidays, meetings and part-time patterns eat into it. This lesson turns raw declared capacity into the real <strong>Reference</strong> that Subtractive mode paints against.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>Say you tell everyone, <em>"I can do 8 hours a day."</em> That's the number on paper. But real life takes bites out of it: a team meeting, being off on Fridays, a public holiday. So the room you <strong>actually</strong> have is smaller than the number you said.</p>
+
+    <div class="cap-bar">
+      <div class="col">
+        <span class="stack">
+          <i class="fill"></i><i class="fill"></i><i class="fill"></i><i class="fill"></i>
+          <i class="fill"></i><i class="fill"></i><i class="fill"></i><i class="fill"></i>
+        </span>
+        on paper<br>8 hours
+      </div>
+      <div class="col">
+        <span class="stack">
+          <i class="gone"></i><i class="gone"></i>
+          <i class="fill"></i><i class="fill"></i><i class="fill"></i><i class="fill"></i>
+          <i class="fill"></i><i class="fill"></i>
+        </span>
+        real room<br>~6 hours
+      </div>
+    </div>
+    <p>Meetings and admin quietly ate the top two hours. Same person, smaller real room.</p>
+
+    <p>And some days are <strong>totally closed</strong> — a public holiday, say. A closed day isn't a "busy" day and it isn't an "empty" day; it's just <em>off</em>. We paint it <strong>grey</strong>, not red or blue, so you can tell "nothing happened here" apart from "this day was quiet".</p>
+
+    <div class="heat" style="--cols:14" data-heat data-cells="0.3,0.4,0.5,0.3,-1,-1,-1,0.4,0.5,0.6,0.3,0.4,-1,-1"></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>slammed</span><span style="margin-left:auto">grey = closed day</span></div>
+
+    <div class="note takeaway">The room you really have is smaller than the number you declared. A fully closed day (like a holiday) is <strong>grey</strong>, not coloured.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>In Subtractive mode you declare a <strong>Base Capacity</strong>: the room per day <em>before</em> anything eats into it, in your <strong>Declared Unit</strong>. It can be flat, or follow a weekday pattern (e.g. weekdays <code>450</code>, weekends <code>0</code>).</p>
+
+    <p>Real life is modelled with <strong>Reducers</strong>. A Reducer is a multiplier in <code>[0, 1]</code> applied over a span: a holiday is <code>0</code>, reduced staffing might be <code>0.6</code>. When several overlap they stack <strong>multiplicatively</strong>, and the day's <strong>Effective Capacity</strong> is:</p>
+
+    <div class="note key">Effective Capacity = Base Capacity × product of all active Reducers.<br>This is the <strong>Reference</strong> — the value that maps to full-red <code>1.0</code> — for that Cell in Subtractive mode.</div>
+
+    <p><strong>Worked calc.</strong> Base <code>100</code>, with two active Reducers <code>0.8</code> (a training afternoon) and <code>0.5</code> (half the team out):</p>
+
+    <table class="grid">
+      <tr><th>Step</th><th>Calculation</th><th>Result</th></tr>
+      <tr><td>Base Capacity</td><td>declared per-day amount</td><td><code>100</code></td></tr>
+      <tr><td>Apply reducer 1</td><td><code>100 × 0.8</code></td><td><code>80</code></td></tr>
+      <tr><td>Apply reducer 2</td><td><code>80 × 0.5</code></td><td><code>40</code></td></tr>
+      <tr><td>Effective Capacity</td><td><code>100 × 0.8 × 0.5</code></td><td><strong><code>40</code></strong></td></tr>
+    </table>
+
+    <p>So a Consumer load of <code>40</code> on that day reads as full red (<code>1.0</code>), even though the paper number was <code>100</code>. When a Reducer (or the product of several) drives Effective Capacity to <code>0</code>, that day is a <strong>Blackout</strong>: rendered neutral <strong>grey</strong>, not red. Load that lands on a Blackout is kept grey but <strong>flagged</strong> — a warning that you've scheduled work onto a closed day.</p>
+
+    <div class="heat" style="--cols:14" data-heat data-cells="0.25,0.3,0.35,0.3,-1,-1,-1,0.7,0.85,0.95,0.8,0.75,-1,-1" data-flag="10"></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>1.0 full</span><span style="margin-left:auto">grey = Blackout · ▲ = load on a closed day</span></div>
+    <p>The second week runs hotter because a <code>0.6</code> staffing Reducer shrank Effective Capacity — the same load fills more of a smaller room.</p>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>This is <strong>shrinkage</strong> (or the <em>focus factor</em>) from workforce and agile planning: declared time is never fully available, so you subtract non-project time — leave, ceremonies, context overhead — before comparing load to capacity. Reducers are the tool's general form of that subtraction, and they generalise past people to any Subject (a machine's maintenance windows, a kitchen's prep hours).<sup class="cite"><a href="../RESOURCES.md">1</a></sup></p>
+
+    <p>Crucially, "full" should not mean <code>100%</code> of raw declared capacity. Sustainable utilisation targets sit around <strong>75–85%</strong>, not 100% — the remaining headroom absorbs variability. You can encode part of that headroom directly as a standing Reducer, or handle it at the utilisation-target stage (Lesson&nbsp;6).<sup class="cite"><a href="../RESOURCES.md">2</a></sup></p>
+
+    <p><strong>Why multiply, not add?</strong> Reducers compose as independent proportional cuts, so <code>Base × 0.8 × 0.5</code> keeps the result in <code>[0, Base]</code> and can never go negative. Additive stacking (<code>Base − 20% − 50% − 40%</code>) would drop below zero and produce nonsensical <em>negative</em> capacity. Multiplication also matches the semantics: "half the staff, of whom 80% are focused" really is <code>0.5 × 0.8 = 0.4</code>, not <code>1 − 0.5 − 0.2</code>.</p>
+
+    <div class="heat" style="--cols:14" data-heat data-cells="0.5,0.6,0.55,0.6,-1,-1,-1,0.55,0.6,0.5,0.6,0.55,-1,-1"></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>&ge;1.0</span><span style="margin-left:auto">grey = Effective Capacity 0</span></div>
+
+    <p><strong>Edge — reducer 0 vs Blackout.</strong> These are the same event seen from two angles: a full public holiday is <em>modelled</em> as a Reducer of <code>0</code> over that day, and the <em>result</em> (Effective Capacity = 0) is what we call a Blackout. A Blackout is therefore not a separate primitive — it's the rendering rule for "any day whose reducer-product zeroed the Base". This is also why <strong>improving one Reducer while another sits at 0 changes nothing</strong>: <code>0 × 0.9 = 0</code>. Zero is absorbing.</p>
+
+    <div class="note">Where this is a simplification: a single per-day multiplier can't express <em>which hours</em> were lost or whether a reduction was elastic (work deferred, not destroyed). The model treats a 0.5 day as "half the room, gone" — it doesn't know the other half slid to tomorrow. For deferral dynamics you need the queueing view hinted at in Lesson&nbsp;6, not a Reducer.</div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why it matters</h2>
+  <p>If you compare load against the <em>declared</em> number, every heatmap runs cool and lies to you. Effective Capacity is the honest denominator: it already knows about holidays, part-time patterns and reduced-staffing spans, so a red Cell means <em>really</em> overloaded — not "overloaded if nobody ever took a day off".</p>
+
+  <h2>Your turn — set the Reference</h2>
+  <p>Each situation is in Subtractive mode. Decide how to model it.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">Base Capacity is 120 minutes/day. On one day a "reduced staffing" Reducer of 0.5 and a "focus block lost" Reducer of 0.5 both apply. What is that day's Effective Capacity?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="thirty">30 minutes</button>
+      <button class="q-opt" data-choice="sixty">60 minutes</button>
+      <button class="q-opt" data-choice="zero">0 minutes</button>
+    </div>
+    <p class="q-feedback" data-correct="thirty"
+       data-explain-thirty="Right. Reducers stack multiplicatively: 120 × 0.5 × 0.5 = 30. Two independent halvings quarter the room, they don't halve it once."
+       data-explain-sixty="That's 120 × 0.5 — you applied only one Reducer. Both are active, and they multiply: 120 × 0.5 × 0.5 = 30."
+       data-explain-zero="Neither Reducer is 0, so the day isn't a Blackout. Multiply them through: 120 × 0.5 × 0.5 = 30."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A one-off public holiday closes the Subject completely for a single day. How should you model it?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="reducer">A Reducer of 0 over that day (→ Blackout)</button>
+      <button class="q-opt" data-choice="delete">Delete the day from the model entirely</button>
+      <button class="q-opt" data-choice="tiny">A Reducer of 0.05 so it stays faintly coloured</button>
+    </div>
+    <p class="q-feedback" data-correct="reducer"
+       data-explain-reducer="Right. A Reducer of 0 zeroes Effective Capacity, giving a Blackout day rendered grey. The day still exists on the calendar and can flag any load mistakenly scheduled onto it."
+       data-explain-delete="Deleting breaks the calendar grain — days are the fixed unit. You'd also lose the warning when load lands on the closed day. Use a Reducer of 0 instead."
+       data-explain-tiny="A near-zero Reducer leaves a sliver of capacity, so any load reads as extreme overload rather than 'closed'. A true holiday is a Reducer of 0, which renders as a grey Blackout."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A day already has a holiday Reducer of 0. Someone proposes upgrading a separate "tooling" Reducer on that day from 0.7 to 0.95 to gain capacity. What happens to Effective Capacity?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="none">Nothing — it stays 0</button>
+      <button class="q-opt" data-choice="rises">It rises by the improvement</button>
+      <button class="q-opt" data-choice="partial">It becomes 0.95 of Base</button>
+    </div>
+    <p class="q-feedback" data-correct="none"
+       data-explain-none="Right. Zero is absorbing under multiplication: 0 × 0.95 = 0. While the holiday Reducer sits at 0 the day stays a Blackout, no matter how good the other Reducers get."
+       data-explain-rises="Not under multiplicative stacking. The holiday Reducer of 0 zeroes the whole product: 0 × 0.95 = 0. Improving a non-binding Reducer buys nothing."
+       data-explain-partial="That would be true only if the holiday Reducer were removed. As long as a 0 Reducer is active, the product is 0 × 0.95 = 0."></p>
+  </div>
+
+  <div class="note build"><strong>In the tool:</strong> set one <strong>Base Capacity</strong> (flat or weekday-patterned), then add <strong>Reducers</strong> as dated spans — holiday <code>0</code>, reduced-staffing <code>0.6</code>, and so on. The heatmap recomputes Effective Capacity per Cell and repaints; any <code>0</code>-capacity day turns grey as a Blackout.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read this next (primary source)</p>
+    <p style="margin:0;"><strong>Eliyahu M. Goldratt — <em>The Goal</em> (Theory of Constraints).</strong> The origin of "an hour of declared capacity is not an hour of useful output": you must subtract to find the capacity that actually constrains throughput. Curated links and further reading in <a href="../RESOURCES.md">RESOURCES.md</a>; overview at <a href="https://www.tocinstitute.org/theory-of-constraints.html">tocinstitute.org</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Should annual leave be a Reducer or a lower Base?&rdquo;, &ldquo;How do I bake a 20% headroom into Effective Capacity?&rdquo;, or &ldquo;What if two Reducers overlap only partly?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0003-subtractive-vs-additive.html">&larr; Prev: Subtractive vs additive</a>
+    <a href="0005-consumers-and-load-shapes.html">Next: Consumers &amp; load shapes &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints each [data-heat] grid from an explicit data-cells list.
+ * Values: 0→1+ on the blue→red ramp; -1 = Blackout (grey). Copied/adapted
+ * from the Lesson 1 painter. data-flag="i,j" marks cells with a warning ▲. */
+(function () {
+  function color(v) {
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  document.querySelectorAll("[data-heat]").forEach(function (grid) {
+    var cells = (grid.getAttribute("data-cells") || "").split(",").map(Number);
+    var flags = (grid.getAttribute("data-flag") || "").split(",").filter(function (s) { return s !== ""; }).map(Number);
+    cells.forEach(function (v, i) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.background = color(v);
+      if (flags.indexOf(i) !== -1) {
+        cell.textContent = "\u25B2";
+        cell.style.color = "#9a3b2e";
+        cell.style.fontSize = "0.6rem";
+        cell.style.textAlign = "center";
+        cell.style.lineHeight = "1.1rem";
+      }
+      grid.appendChild(cell);
+    });
+  });
+})();
+</script>
+</body>
+</html>

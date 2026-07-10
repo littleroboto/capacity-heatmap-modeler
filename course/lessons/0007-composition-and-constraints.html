@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 7 · Composition &amp; constraints: sum or weakest link?</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 7</p>
+  <h1>Composition &amp; constraints: do sources add up, or does the weakest link win?</h1>
+  <p class="lede">The moment a Subject has more than one capacity source, you face one fork: do the sources <em>sum</em>, or is one of them a <em>bottleneck</em>? Getting it wrong makes the heatmap confidently lie.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>There are two ways to combine sources of capacity.</p>
+
+    <p><strong>Way one: they add up.</strong> If three people can each do the same job and any of them can take the next task, then three people get through three people's worth of work. Put them together and their capacities simply <em>add</em>.</p>
+
+    <p><strong>Way two: the slowest one wins.</strong> If the work has to pass through several steps in order — step one, then step two, then step three — then the <em>slowest</em> step sets the pace for everything. A relay team is only as fast as its slowest runner; a chain is only as strong as its weakest link. Speeding up the fast runners doesn't help at all.</p>
+
+    <div class="note takeaway">Interchangeable helpers&nbsp;=&nbsp;capacities <strong>add</strong>. A chain of required steps&nbsp;=&nbsp;the <strong>weakest link</strong> caps the whole thing.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>You already model a single Subject's capacity well (Base Capacity, Reducers, one Declared Unit). When a Subject draws capacity from more than one <strong>Track</strong> — a person plus a CI pipeline, two coupled tracks, five departments — the <strong>Composition</strong> rule decides how those Tracks combine into Effective Capacity.<sup class="cite"><a href="../reference/glossary.html">g</a></sup></p>
+
+    <div class="cards">
+      <div class="card sum">
+        <h3>Sum</h3>
+        <p class="formula">C = c&#8321; + c&#8322; + &hellip;</p>
+        <p>Tracks are <strong>fungible / parallel</strong> — interchangeable, any can take the work. Three cross-trained people get through three people's worth. Capacities add.</p>
+      </div>
+      <div class="card min">
+        <h3>Min (bottleneck)</h3>
+        <p class="formula">C = min(c&#8321;, c&#8322;, &hellip;)</p>
+        <p>Tracks are <strong>coupled / serial</strong> — all required to produce output. The least-capacity Track is the <strong>Constraint</strong> and caps the whole. Improving a non-Constraint does nothing.</p>
+      </div>
+    </div>
+
+    <div class="note key"><strong>The one-question test:</strong> &ldquo;If I add one more unit of <em>this</em> source, does total output rise?&rdquo; If yes for <em>every</em> source &rarr; <strong>sum</strong>. If only one source moves the needle &rarr; that's the <strong>Constraint</strong>, use <strong>min</strong>, and adding anywhere else is wasted.</div>
+
+    <p><strong>Worked example.</strong> One engineer can prepare 20 deployments a day; the CI pipeline behind them can only run 8 builds a day. Naively summing (<code>20 + 8 = 28</code>) is nonsense — they measure different steps of one pipeline. Real throughput is <code>min(20, 8) = 8</code>. Hire a second engineer and it's <em>still 8</em>: you added capacity to a non-Constraint. The CI pipeline is the Constraint, and only raising <em>it</em> raises output.</p>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>The min rule is Goldratt's <strong>Theory of Constraints</strong> (TOC): every system's output is limited by exactly one Constraint — <em>&ldquo;no chain is stronger than its weakest link.&rdquo;</em> The primary source is his 1984 business novel <em>The Goal</em>; the plant-tour chapters remain the clearest intuition for min-vs-sum.<sup class="cite"><a href="https://www.tocinstitute.org/theory-of-constraints.html">1</a></sup></p>
+
+    <p>TOC prescribes the <strong>Five Focusing Steps</strong> for managing a Constraint:</p>
+    <ol class="steps">
+      <li><strong>Identify</strong> the Constraint (the least-capacity Track under <code>min</code>).</li>
+      <li><strong>Exploit</strong> it — wring maximum output from it before spending anything.</li>
+      <li><strong>Subordinate</strong> everything else to it; don't run non-Constraints faster than it can absorb.</li>
+      <li><strong>Elevate</strong> the Constraint — add real capacity where it actually binds.</li>
+      <li><strong>Repeat</strong>: once relieved, the Constraint moves; go back to step&nbsp;1.<sup class="cite"><a href="https://www.leanproduction.com/theory-of-constraints/">2</a></sup></li>
+    </ol>
+
+    <p>This exposes a real modelling hazard in the tool. Aggregation defaults to <strong>rollup = summation</strong> (Lesson&nbsp;1) — correct only for <em>fungible</em> sources. Apply it to <em>coupled</em> Tracks and the heatmap silently overstates Effective Capacity: it shows <code>20 + 8 = 28</code> where reality is <code>8</code>, painting a cool, comfortable Cell over a hard bottleneck. The default doesn't warn you; it just lies quietly.</p>
+
+    <div class="note">Where it's a simplification: TOC assumes a single, stable Constraint, but a Track can be the Constraint only <em>sometimes</em> — a <strong>shifting bottleneck</strong>. On a low-demand week the person binds; on a heavy week CI binds. A single fixed <code>min</code> Composition can't express that the binding Track changes over time; you'd model the periods separately or watch which Track is lowest per bucket.</div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why it bites: the composite case</h2>
+  <p>Getting this fork wrong is the most expensive modelling mistake in the tool. Sum a pair of coupled Tracks and you'll invest in the wrong place, promise throughput you can't deliver, and paint a heatmap that looks healthy while the real bottleneck is on fire. Everything below is one decision, made per Subject: <strong>sum</strong> or <strong>min</strong>.</p>
+
+  <h2>Your turn — classify each scenario</h2>
+  <p>For each, decide whether the sources <strong>sum</strong> or the <strong>weakest link caps</strong> them.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">A support team of 4 agents, all trained on every ticket type.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="sum"
+       data-explain-sum="Right. Fully interchangeable agents are parallel — total = the sum, and each extra agent adds real capacity. This is the case the tool's default rollup = summation is built for."
+       data-explain-min="Not here — the agents are interchangeable, so any of them can take any ticket. Adding an agent raises output, so they sum."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A copywriter who drafts campaigns and one legal reviewer who must sign off every one before it ships.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. They're in series — nothing ships without review. Effective throughput = min(draft rate, review rate). A second copywriter doesn't help if legal is the Constraint."
+       data-explain-sum="Careful — they're coupled in series, not parallel. Output can't exceed whichever of drafting or review is slower, so it's min, not sum."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A QSR country's promo output needs both marketing budget and kitchen throughput to run a limited-time offer.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. Both are required together, in different units — you can't add GBP to covers. The LTO is gated by whichever runs out first, so model the Tracks separately and take the binding one."
+       data-explain-sum="They're not interchangeable (and not even the same unit) — a promo needs both, so the binding Track caps it. That's min."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A whole business: Sales can close 100 deals/mo, Onboarding can activate 60/mo, Support can serve 200/mo.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">Sum (parallel)</button>
+      <button class="q-opt" data-choice="min">Min (bottleneck)</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. Customers flow through all three in series, so realised throughput ≈ min(100, 60, 200) = 60/mo. Onboarding is the Constraint; expanding Sales or Support just piles up work in front of it."
+       data-explain-sum="These are sequential stages, not parallel capacity. The department with the least throughput (Onboarding, 60) caps the business — min, not sum."></p>
+  </div>
+
+  <h2>Feel it — the composition simulator</h2>
+  <p>Three related Tracks. Flip between treating them as parallel (sum) vs coupled (min) and watch Effective Capacity move.</p>
+  <div class="sim" id="sim">
+    <div class="tracks">
+      <label>Track 1<br><input type="number" id="t1" value="20" min="0"></label>
+      <label>Track 2<br><input type="number" id="t2" value="8" min="0"></label>
+      <label>Track 3<br><input type="number" id="t3" value="15" min="0"></label>
+    </div>
+    <div class="toggle">
+      <label><input type="radio" name="mode" value="min" checked> Coupled (min)</label>
+      <label><input type="radio" name="mode" value="sum"> Parallel (sum)</label>
+    </div>
+    <div class="out">Effective capacity: <b id="simOut">8</b> <span id="simHint" class="lo"></span></div>
+  </div>
+
+  <div class="note build">In the tool, this is the per-Subject <strong>Composition</strong> setting: <code>sum</code> for fungible Tracks, <code>min</code> for coupled ones. The default <code>rollup = summation</code> (<a href="../../docs/adr/0002-subject-as-faceting-level.md">ADR-0002</a>) is the <strong>sum</strong> rule — correct only for fungible sources; coupled Tracks (person + infra, multi-stage departments) need <strong>min</strong>, which is exactly what <a href="../../docs/adr/0004-composite-capacity-sum-or-min.md">ADR-0004</a> addresses. When in doubt, apply the one-question test before you trust the colour.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read this next (primary source)</p>
+    <p style="margin:0;"><strong><em>The Goal</em> — Eliyahu Goldratt.</strong> The novel that introduced the Theory of Constraints; the plant-tour / bottleneck chapters are the clearest intuition you'll find for min-vs-sum. Short overview: <a href="https://www.leanproduction.com/theory-of-constraints/">Lean Production — Theory of Constraints</a>. See also <a href="../RESOURCES.md">RESOURCES.md</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;How do I show a bottleneck on the heatmap?&rdquo;, &ldquo;What if a Track is <em>sometimes</em> the Constraint?&rdquo;, or &ldquo;Should Composition be per-Subject or per-Scenario?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0006-utilisation-and-the-100-percent-trap.html">&larr; Prev: Utilisation &amp; the 100% trap</a>
+    <a href="0008-scaling-person-team-company.html">Next: Scaling person &rarr; team &rarr; company &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+  (function () {
+    var ids = ["t1", "t2", "t3"];
+    function recompute() {
+      var vals = ids.map(function (id) { return parseFloat(document.getElementById(id).value) || 0; });
+      var mode = document.querySelector('input[name=mode]:checked').value;
+      var out = mode === "sum"
+        ? vals.reduce(function (a, b) { return a + b; }, 0)
+        : Math.min.apply(null, vals);
+      document.getElementById("simOut").textContent = out;
+      var hint = document.getElementById("simHint");
+      if (mode === "min") {
+        var i = vals.indexOf(out);
+        hint.textContent = "\u2190 Track " + (i + 1) + " is the constraint";
+      } else {
+        hint.textContent = "";
+      }
+    }
+    document.getElementById("sim").addEventListener("input", recompute);
+    recompute();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 2 · Reading the heatmap</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 2</p>
+  <h1>Reading the heatmap</h1>
+  <p class="lede">Lesson 1 said what a heatmap <em>is</em>. This one is about reading a finished one: what each colour is telling you, day by day.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>A heatmap is a <strong>weather map for busy-ness</strong>. Just like a weather map uses colour to show where it's hot and where it's cold, this map uses colour to show which days were quiet and which were slammed. You read it the same way: let your eye find the colours, don't read numbers.</p>
+
+    <p>There are three colours to know:</p>
+    <ul>
+      <li>Cool <span style="color:#2f6f8f"><strong>blue</strong></span> = a <strong>quiet</strong> day, lots of room left.</li>
+      <li>Warm <span style="color:#9a3b2e"><strong>red</strong></span> = a <strong>busy</strong> day, almost full or too full.</li>
+      <li><span style="color:#8a877e"><strong>Grey</strong></span> = a day that was <strong>closed</strong> — a holiday or day off. Nothing happened, so it isn't hot <em>or</em> cold.</li>
+    </ul>
+
+    <div class="heat" style="--cols:14" data-demo-heat="easy"></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>slammed</span><span style="margin-left:auto">grey = closed</span></div>
+
+    <p>Now point at the map above. Most days are calm blue and sandy. Then look at that <strong>run of deep-red squares</strong> — that's a busy streak, several slammed days in a row. And spot the single <span style="color:#8a877e"><strong>grey</strong></span> square: that day was off, so it stayed colourless.</p>
+
+    <div class="note takeaway">Blue&nbsp;=&nbsp;quiet. Red&nbsp;=&nbsp;busy. Grey&nbsp;=&nbsp;closed. Grey is <em>not</em> "very busy" — it means nothing was open that day.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>Every <strong>Cell</strong> — one <strong>Subject</strong> on one day — is painted by its <strong>Load Intensity</strong>, a single value on one blue&rarr;red ramp. Reading the map is reading that value off the colour:</p>
+
+    <table class="grid">
+      <tr><th>Colour</th><th>Load Intensity</th><th>Meaning</th></tr>
+      <tr><td>Coolest blue</td><td><code>0.0</code></td><td>Empty — no load on that day</td></tr>
+      <tr><td>Blue &rarr; sand</td><td><code>0.1&ndash;0.7</code></td><td>Comfortable, room to spare</td></tr>
+      <tr><td>Sand &rarr; red</td><td><code>0.8&ndash;1.0</code></td><td>Near or at the <strong>Reference</strong> (full)</td></tr>
+      <tr><td>Deepest red</td><td><code>&gt;1.0</code></td><td><strong>Overload</strong> — past full</td></tr>
+      <tr><td>Neutral grey</td><td>&mdash;</td><td><strong>Blackout</strong>: Effective Capacity <code>0</code> (closed)</td></tr>
+    </table>
+
+    <p>Two anchors matter. <code>0</code> is empty (coolest). <code>1.0</code> is the <strong>Reference</strong> — the quantity that maps to full red. Anything <code>&gt;1.0</code> pushes into the deepest red as overload. Grey is different in kind: it isn't a hot value at all, it's a <strong>Blackout</strong> day whose Effective Capacity is <code>0</code>.</p>
+
+    <p><strong>A worked read.</strong> Take this fortnight for one Subject:</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat="worked"></div>
+    <div class="heat-legend"><span>0.0 empty</span><span class="heat-ramp"></span><span>1.0+ full</span><span style="margin-left:auto">grey = blackout</span></div>
+
+    <ol class="steps">
+      <li>The early days sit blue-to-sand: intensities around <code>0.3&ndash;0.6</code>. Comfortable, well under the Reference.</li>
+      <li>The middle carries a <strong>run of deep-red Cells</strong> — several days at or above <code>1.0</code>. That's a sustained overload, not a one-day blip.</li>
+      <li>One <span style="color:#8a877e"><strong>grey</strong></span> Cell sits inside the busy stretch: a <strong>Blackout</strong> (Effective Capacity <code>0</code>), read as <em>closed</em>, never as "hottest".</li>
+    </ol>
+
+    <p>Zoomed out, you rarely stare at single days. A <strong>Roll-up View</strong> aggregates Load Intensity into weekly or monthly buckets rendered on the same Cells — the grain underneath stays daily, you're just reading a coarser summary of the same values.<sup class="cite"><a href="../reference/glossary.html">g</a></sup></p>
+
+    <div class="note key">Grey and red answer different questions. Red says <em>how full</em>. Grey says <em>whether the day counted at all</em>. Never average a Blackout into a busy streak.</div>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>Load Intensity is a <strong>normalised scalar</strong> — <code>load ÷ Reference</code> — mapped onto a single perceptual ramp. The design payoff of one ramp is <strong>cross-subject comparability</strong>: because a person, a kitchen, and a CI pipeline are all painted on the same <code>0&rarr;1+</code> scale, a red Cell means the same <em>relative</em> thing everywhere, and small multiples become directly scannable side by side.<sup class="cite"><a href="https://www.edwardtufte.com/book/envisioning-information/">1</a></sup></p>
+
+    <p>The ramp encodes three regimes. Below <code>1.0</code>: spare room. At <code>1.0</code>: the Reference is met. Above <code>1.0</code>: past the Reference — but that top region is only <em>meaningful</em> in <strong>Subtractive mode</strong>, where the Reference is a real Effective Capacity, so <code>&gt;1.0</code> is genuine overload. In Additive mode the Reference is just a Normalisation Max, so there is no true "over" (Lesson&nbsp;3).<sup class="cite"><a href="../RESOURCES.md">2</a></sup> Grey is off the ramp entirely: a Blackout is a categorical state (Effective Capacity <code>0</code>), deliberately <em>not</em> encoded as an extreme value so a closed day can never be misread as the hottest.</p>
+
+    <div class="heat" style="--cols:28" data-demo-heat="expert"></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>&ge;1.0 overload</span><span style="margin-left:auto">grey = blackout</span></div>
+
+    <div class="note">Where it's a simplification: a day collapsed to one scalar hides <em>within-day</em> timing and queueing. Two days can both read <code>0.9</code> while one flowed smoothly and the other spiked and queued badly at noon. The ramp reports a daily aggregate, not the arrival process underneath — utilisation near a limit says nothing about the variability that actually drives waiting.<sup class="cite"><a href="https://en.wikipedia.org/wiki/Kingman%27s_formula">3</a></sup></div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why reading comes before building</h2>
+  <p>If you can't read a heatmap correctly you can't trust one you build. The two easiest mistakes are treating <strong>grey as very hot</strong> and treating a single red Cell as a crisis. A crisis is a <em>run</em> of red — a streak — and grey is simply a day that was closed.</p>
+
+  <h2>Read these situations</h2>
+  <p>Each describes what you'd see on a rendered heatmap. Pick the correct interpretation.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">One Cell in the middle of a busy week is neutral grey.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="blackout">It's a Blackout — a closed day</button>
+      <button class="q-opt" data-choice="overload">It's the busiest day of all</button>
+      <button class="q-opt" data-choice="empty">It's the same as a blue empty day</button>
+    </div>
+    <p class="q-feedback" data-correct="blackout"
+       data-explain-blackout="Right. Grey means Effective Capacity is 0 for that day — a Blackout (holiday/closed). It sits off the ramp on purpose so a closed day is never read as hot."
+       data-explain-overload="No — grey is deliberately off the colour ramp. Overload is the deepest red, above 1.0. Grey means the day was closed, not slammed."
+       data-explain-empty="Not quite. A blue empty day is on the ramp at intensity 0 (open, but no load). Grey is a Blackout: the day had no capacity at all."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">You see a run of the deepest-red Cells, clearly darker than the sandy 'full' tone around them.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="overload">Sustained overload — load beyond the Reference</button>
+      <button class="q-opt" data-choice="blackout">A stretch of closed, Blackout days</button>
+      <button class="q-opt" data-choice="empty">A run of empty, unused days</button>
+    </div>
+    <p class="q-feedback" data-correct="overload"
+       data-explain-overload="Right. Deepest red is Load Intensity above 1.0 — past the Reference. A run of it is a sustained overload, not a one-day blip."
+       data-explain-blackout="No — Blackout days are grey, not red. Deep red is the far end of the ramp: load beyond the full Reference."
+       data-explain-empty="No — empty days are the coolest blue at intensity 0. The deepest red is the opposite end: load beyond full."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">Cells show clear relative hotness, but no Cell ever passes the top of the ramp — nothing reads as beyond full.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="additive">Likely Additive/relative — no true overload exists</button>
+      <button class="q-opt" data-choice="subtractive">Definitely Subtractive with real overload</button>
+      <button class="q-opt" data-choice="broken">The heatmap is rendering incorrectly</button>
+    </div>
+    <p class="q-feedback" data-correct="additive"
+       data-explain-additive="Right. If hotness is relative and nothing exceeds the top, the Reference is probably a Normalisation Max — Additive mode, where there is no true overload (Lesson 3)."
+       data-explain-subtractive="No — Subtractive mode is exactly where >1.0 overload is possible. A ramp that never exceeds full points the other way, toward relative/Additive."
+       data-explain-broken="No — this is a normal, valid reading. It's the signature of a relative scale where the top is the hottest observed Cell, not a real capacity."></p>
+  </div>
+
+  <div class="note build">In the tool, hovering a Cell shows its exact Load Intensity and whether it's a Blackout. Use hover to confirm a read: is that pale square a low intensity, or a Blackout you're about to misinterpret?</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read/watch this next (primary source)</p>
+    <p style="margin:0;"><strong>Edward Tufte — <em>Envisioning Information</em>.</strong> On why colour and small multiples let the eye read pattern and exception faster than any table — the reason a single shared ramp works for reading heatmaps at all. Overview: <a href="https://www.edwardtufte.com/book/envisioning-information/">edwardtufte.com</a>. Further sources: <a href="../RESOURCES.md">RESOURCES.md</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Why is grey off the ramp instead of black?&rdquo;, &ldquo;How do weekly Roll-up Views combine daily intensities?&rdquo;, or &ldquo;When is one red Cell worth worrying about?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0001-what-is-capacity-modeling.html">&larr; Prev: What is capacity modeling?</a>
+    <a href="0003-subtractive-vs-additive.html">Next: Subtractive vs Additive &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints the demo heatmaps. Adapted from Lesson 1's painter; each grid takes a
+   named scenario via data-demo-heat so we can stage an obvious hot streak and a
+   grey blackout day for reading practice. */
+(function () {
+  function color(v) {
+    // v in [0,1.1+]; blue #2f6f8f → sand #eadfae → red #9a3b2e, grey for blackout(<0)
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  function intensity(scenario, i) {
+    if (scenario === "expert") {
+      var wave = 0.45 + 0.4 * Math.sin(i / 5) + 0.25 * Math.sin(i / 2.3);
+      if (i % 37 === 0) return -1;             // occasional blackout
+      if (i >= 46 && i <= 52) return 1.05;     // an overload streak
+      return wave;
+    }
+    // "easy" and "worked": a calm base with one clear hot streak + one blackout
+    var base = 0.35 + 0.22 * Math.sin(i / 3.5);
+    if (i >= 18 && i <= 23) return 1.05;        // obvious run of deep red
+    if (i === 25) return -1;                    // single grey blackout day
+    return base;
+  }
+  document.querySelectorAll("[data-demo-heat]").forEach(function (grid) {
+    var scenario = grid.getAttribute("data-demo-heat") || "easy";
+    var cols = parseInt(getComputedStyle(grid).getPropertyValue("--cols")) || 14;
+    var n = cols * 4;
+    for (var i = 0; i < n; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.background = color(intensity(scenario, i));
+      grid.appendChild(cell);
+    }
+  });
+})();
+</script>
+</body>
+</html>

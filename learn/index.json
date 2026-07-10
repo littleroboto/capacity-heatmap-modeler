@@ -1,0 +1,66 @@
+{
+  "lessons": [
+    {
+      "file": "lessons/0001-what-is-capacity-modeling.html",
+      "number": "0001",
+      "title": "What is capacity modeling?",
+      "lede": "This workbench turns \"how busy is something, over time?\" into a picture you can read at a glance — for a person, a team, a company, or anything else with limits."
+    },
+    {
+      "file": "lessons/0002-reading-the-heatmap.html",
+      "number": "0002",
+      "title": "Reading the heatmap",
+      "lede": "Lesson 1 said what a heatmap is. This one is about reading a finished one: what each colour is telling you, day by day."
+    },
+    {
+      "file": "lessons/0003-subtractive-vs-additive.html",
+      "number": "0003",
+      "title": "Two modes: Subtractive vs Additive",
+      "lede": "The core fork of the whole tool. Everything about a heatmap is shared except one choice: what sets the point that maps to full red."
+    },
+    {
+      "file": "lessons/0004-effective-capacity.html",
+      "number": "0004",
+      "title": "From raw to effective capacity",
+      "lede": "The number you declare is rarely the room you actually have. Holidays, meetings and part-time patterns eat into it. This lesson turns raw declared capacity into the real Reference that Subtractive mode paints against."
+    },
+    {
+      "file": "lessons/0005-consumers-and-load-shapes.html",
+      "number": "0005",
+      "title": "Modeling demand: consumers & load shapes",
+      "lede": "Capacity is the room; demand is what fills it. Here you learn how load gets added to a day — the two kinds of thing that generate it, and how their amounts pile up when they overlap."
+    },
+    {
+      "file": "lessons/0006-utilisation-and-the-100-percent-trap.html",
+      "number": "0006",
+      "title": "Utilisation and the 100% trap",
+      "lede": "A heatmap that's solid deep-red is a warning light, not a trophy. Being totally full is fragile, not efficient — aim for mostly warm, not scalding."
+    },
+    {
+      "file": "lessons/0007-composition-and-constraints.html",
+      "number": "0007",
+      "title": "Composition & constraints: do sources add up, or does the weakest link win?",
+      "lede": "The moment a Subject has more than one capacity source, you face one fork: do the sources sum, or is one of them a bottleneck? Getting it wrong makes the heatmap confidently lie."
+    },
+    {
+      "file": "lessons/0008-scaling-person-team-company.html",
+      "number": "0008",
+      "title": "Scaling: person → team → company",
+      "lede": "One model, every level. The same coloured-squares picture works for a single person, a whole team, or the entire company — you just choose how far to zoom out. Nothing new to learn; only what to add together."
+    },
+    {
+      "file": "lessons/0009-capstone-model-a-scenario.html",
+      "number": "0009",
+      "title": "Capstone: model a scenario end-to-end",
+      "lede": "Everything in one build. We'll take a real situation — a small marketing team facing a big launch — and turn it into a single, trustworthy heatmap, one decision at a time."
+    }
+  ],
+  "reference": [
+    {
+      "file": "reference/glossary.html",
+      "number": "",
+      "title": "Glossary",
+      "lede": "The shared vocabulary of the Capacity Heatmap Modeler. Every lesson uses these words precisely — this page is the source of truth. Mirrors the project CONTEXT.md."
+    }
+  ]
+}

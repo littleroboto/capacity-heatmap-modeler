@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 · What is capacity modeling?</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 1</p>
+  <h1>What is capacity modeling?</h1>
+  <p class="lede">This workbench turns "how busy is something, over time?" into a picture you can read at a glance — for a person, a team, a company, or anything else with limits.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>Imagine a row of little squares, one for each day. Each square is coloured by how <strong>busy</strong> that day is. Cool <span style="color:#2f6f8f">blue</span> means quiet. Warm <span style="color:#9a3b2e">red</span> means slammed. A whole page of coloured squares lets you <em>see</em> the busy times without reading a single number.</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>slammed</span></div>
+
+    <p>That's all this tool does: it paints <strong>busy-ness over time</strong>. You can point it at <em>anything</em> that fills up — a person's week, a kitchen at dinner, a team's month. If it can get full, you can colour it.</p>
+
+    <div class="note takeaway">Blue&nbsp;=&nbsp;lots of room left. Red&nbsp;=&nbsp;almost full or too full. One square&nbsp;=&nbsp;one day.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>A <strong>capacity model</strong> answers one question over time: <em>how much of the available room is being used?</em> The tool renders this as a heatmap where each <strong>Cell</strong> is one <strong>Subject</strong> on one day, painted by its <strong>Load Intensity</strong> — a single value on a blue→red ramp where <code>0</code> is empty and <code>1.0</code> is "full".</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat></div>
+    <div class="heat-legend"><span>0.0 empty</span><span class="heat-ramp"></span><span>1.0+ full</span></div>
+
+    <p>The <strong>Subject</strong> is whatever you're modelling — it isn't a fixed type. Facet by person and each Subject is a person; don't facet and the Subject is the whole aggregate. Capacity and demand simply <strong>sum</strong> across whatever you're not splitting by. So the same machine models an individual, a team, or a business without a separate "hierarchy" feature.<sup class="cite"><a href="../reference/glossary.html">g</a></sup></p>
+
+    <table class="grid">
+      <tr><th>Piece</th><th>Meaning</th><th>Example</th></tr>
+      <tr><td>Subject</td><td>The thing one heatmap models</td><td>Priya · the design team · the company</td></tr>
+      <tr><td>Cell</td><td>One Subject on one day</td><td>Priya on Tue 14 Mar</td></tr>
+      <tr><td>Load Intensity</td><td>Fraction of room used, <code>0→1+</code></td><td><code>0.8</code> = 80% full</td></tr>
+    </table>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>Formally, the tool is a <strong>normalisation engine over a time series</strong>. Every Cell reduces to one scalar, Load Intensity <code>= load ÷ Reference</code>, mapped onto a single perceptual colour ramp. The design bet is that a <em>unified intensity</em> — one number, one ramp — is worth more than domain-specific dashboards, because it makes heterogeneous subjects (people, pipelines, budgets, kitchens) directly comparable at a glance.</p>
+
+    <p>What varies between problems is only the <strong>Reference</strong> (what maps to full-red <code>1.0</code>) and how load accumulates — captured by two <strong>Modes</strong> (Subtractive vs Additive, Lesson&nbsp;3). Aggregation is deliberately just summation over any un-faceted <strong>Dimension</strong> ("rollup&nbsp;=&nbsp;summation"), which is correct for fungible sources and <em>wrong</em> for coupled ones — the constraint problem you'll meet in Lesson&nbsp;7.<sup class="cite"><a href="../reference/glossary.html">g</a></sup></p>
+
+    <p>The visual grammar — small coloured cells in a calendar, faceted into <strong>small multiples</strong> — is Tufte's argument that dense, comparable, well-designed graphics beat tables and prose for spotting pattern and exception.<sup class="cite"><a href="https://www.edwardtufte.com/book/envisioning-information/">1</a></sup> The modeling discipline underneath is classic operations management: capacity vs load, utilisation, and constraints.<sup class="cite"><a href="https://www.tocinstitute.org/theory-of-constraints.html">2</a></sup></p>
+
+    <div class="heat" style="--cols:28" data-demo-heat></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>&ge;1.0 overload</span><span style="margin-left:auto">grey = blackout</span></div>
+
+    <div class="note">Where it's a simplification: collapsing a day to one scalar hides <em>within-day</em> timing and queueing dynamics. The heatmap tells you a day is hot; it doesn't tell you whether work queued or was dropped. Lesson&nbsp;6 covers what that scalar can and can't say.</div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why bother?</h2>
+  <p>Because "we're busy" is not a plan. A capacity model turns a vague feeling into something you can point at: <em>which</em> weeks are overloaded, by <em>how much</em>, and whether adding help would even change it. The rest of this course teaches you to build models that are trustworthy — not just colourful.</p>
+
+  <h2>Your turn — what could you model?</h2>
+  <p>A heatmap Subject can be anything with room that fills up over time. For each candidate, decide: <strong>can this workbench model it?</strong></p>
+
+  <div class="quiz">
+    <p class="q-prompt">A single engineer's weekly workload across a quarter.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="yes">Yes — model it</button>
+      <button class="q-opt" data-choice="no">No — wrong tool</button>
+    </div>
+    <p class="q-feedback" data-correct="yes"
+       data-explain-yes="Right. A person is the classic Subject: capacity = their available hours, load = their tasks and meetings. This is the core case."
+       data-explain-no="It fits perfectly — a person is the simplest Subject, with hours as the unit."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A restaurant kitchen's covers served per day over a festive season.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="yes">Yes — model it</button>
+      <button class="q-opt" data-choice="no">No — wrong tool</button>
+    </div>
+    <p class="q-feedback" data-correct="yes"
+       data-explain-yes="Right. The Subject is the kitchen, the unit is 'covers', capacity is what it can plate per day. People are not the only Subjects — anything with a per-day limit works."
+       data-explain-no="It fits — the kitchen has a daily limit (covers) and demand (bookings). That's exactly a capacity model."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">The exact minute-by-minute order in which one person did tasks yesterday.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="yes">Yes — model it</button>
+      <button class="q-opt" data-choice="no">No — wrong tool</button>
+    </div>
+    <p class="q-feedback" data-correct="no"
+       data-explain-no="Right. The atomic grain is a whole day, not minutes. The heatmap says a day was hot; it can't sequence within-day events. Reach for a timeline, not this."
+       data-explain-yes="Not this tool — the smallest unit is one day. Within-day sequencing is below the grain the heatmap works at."></p>
+  </div>
+
+  <div class="note build">In the tool, this whole idea is one <strong>Scenario</strong>: a saved model (its Subject, capacity, demand, and config) that renders to a one-page visual. Everything you learn in this course is about filling in a Scenario well.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read/watch this next (primary source)</p>
+    <p style="margin:0;"><strong>Edward Tufte — <em>Envisioning Information</em>.</strong> The clearest case for why a dense, well-designed graphic beats a table for seeing pattern over time — the reason a heatmap works at all. Overview: <a href="https://www.edwardtufte.com/book/envisioning-information/">edwardtufte.com</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Can I model a budget?&rdquo;, &ldquo;What if my thing doesn't have a clear limit?&rdquo;, or &ldquo;How is a team different from a person here?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0002-reading-the-heatmap.html">Next: Reading the heatmap &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints the demo heatmaps with a plausible blue→red pattern (no data needed). */
+(function () {
+  function color(v) {
+    // v in [0,1.1]; blue #2f6f8f → sand #eadfae → red #9a3b2e, grey for blackout(-1)
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  document.querySelectorAll("[data-demo-heat]").forEach(function (grid) {
+    var cols = parseInt(getComputedStyle(grid).getPropertyValue("--cols")) || 14;
+    var n = cols * 4;
+    for (var i = 0; i < n; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      // gentle wave + a hot week + an occasional blackout
+      var wave = 0.45 + 0.4 * Math.sin(i / 5) + 0.25 * Math.sin(i / 2.3);
+      if (i % 37 === 0) wave = -1;
+      cell.style.background = color(wave);
+      grid.appendChild(cell);
+    }
+  });
+})();
+</script>
+</body>
+</html>

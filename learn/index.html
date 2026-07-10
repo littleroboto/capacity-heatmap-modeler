@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capacity Modeling — a course for the Heatmap Modeler</title>
+<link rel="stylesheet" href="assets/course.css">
+<script src="assets/levels.js"></script>
+<style>
+  .course-list { list-style: none; padding: 0; margin: 1.6rem 0; }
+  .course-list li {
+    border: 1px solid var(--rule); border-radius: 8px; background: #fff;
+    padding: 0.9rem 1.1rem; margin: 0.6rem 0; display: flex; gap: 1rem; align-items: baseline;
+    transition: border-color 0.15s ease, transform 0.05s ease;
+  }
+  .course-list li:hover { border-color: var(--cool); }
+  .course-list .n {
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem;
+    color: var(--ink-soft); min-width: 1.4rem;
+  }
+  .course-list a { text-decoration: none; font-weight: 600; color: var(--ink); }
+  .course-list a:hover { color: var(--cool); }
+  .course-list .blurb { color: var(--ink-soft); font-size: 0.92rem; margin: 0.15rem 0 0; }
+  .lvl-key { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0 2rem; }
+  .lvl-key .chip {
+    border: 1px solid var(--rule); border-radius: 8px; padding: 0.7rem 0.9rem; background: #fff; flex: 1 1 12rem;
+  }
+  .lvl-key .chip h3 { margin: 0 0 0.2rem; }
+  .lvl-key .chip.easy   { border-top: 4px solid var(--good); }
+  .lvl-key .chip.inter  { border-top: 4px solid var(--cool); }
+  .lvl-key .chip.expert { border-top: 4px solid var(--accent); }
+  .lvl-key .chip p { font-size: 0.9rem; color: var(--ink-soft); margin: 0; }
+</style>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">The Capacity Heatmap Modeler</p>
+  <h1>Capacity Modeling — the course</h1>
+  <p class="lede">Learn to build heatmaps that are <em>trustworthy</em>, not just colourful — for a person, a team, a company, or anything with capacity and demand over time. Every lesson reads at three depths; pick the one that suits the moment with the bar at the top and it follows you through the course.</p>
+
+  <div class="lvl-key">
+    <div class="chip easy"><h3>Overview</h3><p>Plain language, one picture, no maths. What it is and why it matters — a two-minute read.</p></div>
+    <div class="chip inter"><h3>In practice</h3><p>The tool's real vocabulary, simple arithmetic, and worked examples for building a model.</p></div>
+    <div class="chip expert"><h3>In depth</h3><p>The theory beneath, citations, edge cases, and where the model is a simplification.</p></div>
+  </div>
+
+  <p>The quizzes are <strong>applied</strong>: you're handed a situation and asked how to model it. They double as training and assessment material you can reuse in-product.</p>
+
+  <h2>Lessons</h2>
+  <ol class="course-list">
+    <li><span class="n">1</span><div><a href="lessons/0001-what-is-capacity-modeling.html">What is capacity modeling?</a><p class="blurb">The workbench idea: painting busy-ness over time, for anything that fills up.</p></div></li>
+    <li><span class="n">2</span><div><a href="lessons/0002-reading-the-heatmap.html">Reading the heatmap</a><p class="blurb">Cells, the blue→red ramp, Load Intensity, grey blackouts, roll-up views.</p></div></li>
+    <li><span class="n">3</span><div><a href="lessons/0003-subtractive-vs-additive.html">Two modes: Subtractive vs Additive</a><p class="blurb">Do you have a real limit, or just relative heat? What sets the Reference.</p></div></li>
+    <li><span class="n">4</span><div><a href="lessons/0004-effective-capacity.html">From raw to effective capacity</a><p class="blurb">Base capacity, Reducers, Blackouts, and the shrinkage that makes real room smaller.</p></div></li>
+    <li><span class="n">5</span><div><a href="lessons/0005-consumers-and-load-shapes.html">Modeling demand: consumers &amp; load shapes</a><p class="blurb">Recurring vs Spanning consumers, load shapes, phases, and why load sums.</p></div></li>
+    <li><span class="n">6</span><div><a href="lessons/0006-utilisation-and-the-100-percent-trap.html">Utilisation and the 100% trap</a><p class="blurb">Why an all-red heatmap is a warning: queueing, Little's Law, target bands.</p></div></li>
+    <li><span class="n">7</span><div><a href="lessons/0007-composition-and-constraints.html">Composition &amp; constraints</a><p class="blurb">Do sources add up, or does the weakest link win? Sum vs min, and the bottleneck.</p></div></li>
+    <li><span class="n">8</span><div><a href="lessons/0008-scaling-person-team-company.html">Scaling: person → team → company</a><p class="blurb">One model, every level. Dimensions, faceting, small multiples, rollup = summation.</p></div></li>
+    <li><span class="n">9</span><div><a href="lessons/0009-capstone-model-a-scenario.html">Capstone: model a scenario end-to-end</a><p class="blurb">Put it all together — build one complete Scenario, decision by decision.</p></div></li>
+  </ol>
+
+  <h2>Reference</h2>
+  <p class="nav">
+    <a href="reference/glossary.html">Glossary — the shared vocabulary &rarr;</a>
+    <a href="RESOURCES.md">Sources &amp; further reading</a>
+    <a href="../CONTEXT.md">Project CONTEXT.md</a>
+  </p>
+
+  <p class="ask"><strong>Your agent is your teacher.</strong> Open any lesson and ask follow-up questions — "how would I model <em>my</em> team?", "is this Subtractive or Additive?" — the more concrete, the better.</p>
+</div>
+</body>
+</html>

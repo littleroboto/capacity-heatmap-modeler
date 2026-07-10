@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference · Capacity Modeling Glossary</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .gloss dt { font-weight: 600; margin-top: 1.1rem; }
+  .gloss dt .unit {
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.62rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft);
+    border: 1px solid var(--rule); border-radius: 4px; padding: 0.05em 0.4em; margin-left: 0.4rem;
+  }
+  .gloss dd { margin: 0.15rem 0 0; color: var(--ink); }
+  .gloss dd .avoid { color: var(--ink-soft); font-size: 0.86rem; }
+  .gloss dd .avoid b { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body data-level="intermediate">
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Reference</p>
+  <h1>Glossary</h1>
+  <p class="lede">The shared vocabulary of the Capacity Heatmap Modeler. Every lesson uses these words precisely — this page is the source of truth. Mirrors the project <code>CONTEXT.md</code>.</p>
+
+  <h2>Core model</h2>
+  <dl class="gloss">
+    <dt>Subject</dt>
+    <dd>The entity a single heatmap models — determined by the current <em>faceting level</em>, not a fixed type. Facet by <code>person</code> → each Subject is a person; don't facet → the Subject is the whole aggregate. "Team" and "business" are just aggregates that <strong>sum</strong> across un-faceted Dimensions.
+      <div class="avoid"><b>Avoid:</b> entity, actor, resource</div></dd>
+
+    <dt>Cell</dt>
+    <dd>The atomic unit: one Subject on one <strong>day</strong>. Its colour encodes Load Intensity. Days are the fixed grain; coarser views are Roll-up Views.
+      <div class="avoid"><b>Avoid:</b> box, square</div></dd>
+
+    <dt>Roll-up View</dt>
+    <dd>A weekly or monthly aggregate rendered on the daily Cells (intensity aggregated over the bucket). The underlying grain is always daily.
+      <div class="avoid"><b>Avoid:</b> zoom, summary</div></dd>
+
+    <dt>Load Intensity <span class="unit">0 → 1+</span></dt>
+    <dd>The single normalised value every Cell is painted with, on one blue→red ramp. <code>0</code> = empty (coolest), <code>1.0</code> = the full-red Reference, <code>&gt;1.0</code> = beyond it (deepest red).
+      <div class="avoid"><b>Avoid:</b> heat, utilisation (utilisation is one <em>interpretation</em> of intensity)</div></dd>
+
+    <dt>Reference</dt>
+    <dd>The quantity that maps to Load Intensity <code>1.0</code> (full red) for a Cell. What <em>sets</em> the Reference is the only thing that differs between the two Modes.
+      <div class="avoid"><b>Avoid:</b> max, ceiling, threshold (each is a specific kind of Reference)</div></dd>
+  </dl>
+
+  <h2>Modes</h2>
+  <dl class="gloss">
+    <dt>Subtractive mode</dt>
+    <dd>The Subject has a declared Capacity. A Cell starts blue and moves toward red as Consumers use it up. Reference = Effective Capacity, so Load Intensity = consumed ÷ effective capacity; <code>&gt;1.0</code> is real, meaningful overload.
+      <div class="avoid"><b>Avoid:</b> capacity mode, top-down</div></dd>
+
+    <dt>Additive mode</dt>
+    <dd>The Subject has no declared Capacity. A Cell starts empty and heats up as Consumers layer in. Reference = a Normalisation Max (relative), so Load Intensity is relative "hotness" with no true overload.
+      <div class="avoid"><b>Avoid:</b> bottom-up, layering mode</div></dd>
+  </dl>
+
+  <h2>Capacity, reducers, consumers</h2>
+  <dl class="gloss">
+    <dt>Capacity</dt>
+    <dd>A declared block of available "room" for a Subject, in one Declared Unit. One heatmap has exactly one Capacity in one unit. Subtractive mode only.
+      <div class="avoid"><b>Avoid:</b> supply, budget</div></dd>
+
+    <dt>Declared Unit</dt>
+    <dd>The single unit a heatmap's Capacity and Consumers are measured in (minutes, covers, GBP, labs, story-points). Free-text per Scenario; the tool does not convert between units.
+      <div class="avoid"><b>Avoid:</b> nominal scale, measure</div></dd>
+
+    <dt>Base Capacity</dt>
+    <dd>The declared capacity per day <em>before</em> Reducers, in the Declared Unit. One amount with an optional weekday pattern (e.g. weekdays 450, weekends 0). Default flat.
+      <div class="avoid"><b>Avoid:</b> raw capacity, gross capacity</div></dd>
+
+    <dt>Effective Capacity</dt>
+    <dd><code>Base Capacity × product of all active Reducer multipliers</code> for a Cell. This is the Reference in Subtractive mode.
+      <div class="avoid"><b>Avoid:</b> net capacity, available capacity</div></dd>
+
+    <dt>Reducer <span class="unit">0 → 1</span></dt>
+    <dd>Something that lowers a Subject's Capacity over a time span, as a multiplier in <code>[0,1]</code> (holiday = 0; reduced staffing = e.g. 0.6). Reducers stack multiplicatively. Subtractive mode only.
+      <div class="avoid"><b>Avoid:</b> blocker, deduction</div></dd>
+
+    <dt>Blackout</dt>
+    <dd>A day whose Effective Capacity is <code>0</code> (e.g. a holiday). Rendered neutral grey, not red. Consumer load landing on a Blackout is kept grey but flagged with a warning marker.
+      <div class="avoid"><b>Avoid:</b> closed, off-day</div></dd>
+
+    <dt>Consumer</dt>
+    <dd>Something that generates load over time (task, meeting, campaign, programme). Exists in both Modes. A day's total load is the <strong>sum</strong> of all active Consumers' amounts ("layering" = summation).
+      <div class="avoid"><b>Avoid:</b> demand, activity, task (these are kinds of a Consumer)</div></dd>
+
+    <dt>Recurring Consumer</dt>
+    <dd>Applies a per-active-day amount on a recurrence (every weekday, specific weekdays, a cadence), optionally bounded by a date window. For standing duties and BAU.
+      <div class="avoid"><b>Avoid:</b> repeating task</div></dd>
+
+    <dt>Spanning Consumer</dt>
+    <dd>Applies over a single dated range with a Load Shape describing how its amount varies across the range. For campaigns, programmes, projects.
+      <div class="avoid"><b>Avoid:</b> event, campaign (those are sources of one)</div></dd>
+
+    <dt>Load Shape</dt>
+    <dd>How a Spanning Consumer's amount is distributed across its range — flat, a ramp-up/down, or named Phases.
+      <div class="avoid"><b>Avoid:</b> curve, profile</div></dd>
+
+    <dt>Phase</dt>
+    <dd>A named sub-span of a Spanning Consumer's range carrying its own amount (e.g. <code>prep</code> low, then <code>live</code> high).
+      <div class="avoid"><b>Avoid:</b> stage, period</div></dd>
+  </dl>
+
+  <h2>Composition (multi-source capacity)</h2>
+  <dl class="gloss">
+    <dt>Track</dt>
+    <dd>One capacity source contributing to a Subject when its capacity comes from more than one place (a person, a CI pipeline, a department). Tagged like any Capacity entry.
+      <div class="avoid"><b>Avoid:</b> stream, lane, channel</div></dd>
+
+    <dt>Composition</dt>
+    <dd>The per-Subject rule for combining Tracks into Effective Capacity: <code>sum</code> (Tracks fungible/parallel — capacities add) or <code>min</code> (Tracks coupled/serial — the weakest caps the whole). Default <code>sum</code>.
+      <div class="avoid"><b>Avoid:</b> aggregation, combine</div></dd>
+
+    <dt>Constraint</dt>
+    <dd>Under <code>min</code> composition, the Track with the least capacity — the one that caps output (the bottleneck). Improving a non-Constraint Track does not raise Effective Capacity.
+      <div class="avoid"><b>Avoid:</b> bottleneck (gloss only), limiter</div></dd>
+  </dl>
+
+  <h2>Scenario, output & faceting</h2>
+  <dl class="gloss">
+    <dt>Scenario</dt>
+    <dd>One saved, self-contained model — its Subject(s), Capacity, Reducers, Consumers, and config — that renders to a one-page visual.
+      <div class="avoid"><b>Avoid:</b> plan, case, view</div></dd>
+
+    <dt>Normalisation Max</dt>
+    <dd>In Additive mode, the load value that maps to full red. May be the hottest Cell in the visual or a value set by the user.
+      <div class="avoid"><b>Avoid:</b> peak, cap</div></dd>
+
+    <dt>Dimension</dt>
+    <dd>A config-declared attribute with a fixed set of allowed values that every Capacity and Consumer can be tagged with (<code>country</code>, <code>brand</code>, <code>channel</code>). Choosing one to <strong>facet by</strong> splits a visual into small multiples.
+      <div class="avoid"><b>Avoid:</b> field, axis, tag (each a partial view of a Dimension)</div></dd>
+
+    <dt>Small multiples</dt>
+    <dd>The set of heatmaps produced by faceting a visual along one Dimension's values.
+      <div class="avoid"><b>Avoid:</b> panels, grid</div></dd>
+  </dl>
+
+  <p class="nav">
+    <a href="../index.html">Course home</a>
+    <a href="../../CONTEXT.md">Project CONTEXT.md</a>
+  </p>
+</div>
+</body>
+</html>

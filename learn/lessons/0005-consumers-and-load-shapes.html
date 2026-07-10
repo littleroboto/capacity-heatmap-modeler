@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 5 · Modeling demand: consumers &amp; load shapes</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson-local: a tiny stacked-block picture showing loads summing on a day. */
+  .stackpix { display:flex; align-items:flex-end; gap:0.5rem; margin:1rem 0 0.4rem; }
+  .stackpix .col { text-align:center; font-family:ui-sans-serif,system-ui,sans-serif; font-size:0.72rem; color:var(--ink-soft); }
+  .stackpix .tower { width:2.6rem; margin:0 auto 0.35rem; display:flex; flex-direction:column-reverse; border:1px solid var(--rule); border-radius:4px; overflow:hidden; }
+  .stackpix .tower b { display:block; font-weight:400; color:#fff; font-size:0.6rem; line-height:1.1rem; }
+  .stackpix .s-standup { background:#8fb4c4; }
+  .stackpix .s-campaign { background:#c98a5e; }
+</style>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 5</p>
+  <h1>Modeling demand: consumers &amp; load shapes</h1>
+  <p class="lede">Capacity is the room; <strong>demand</strong> is what fills it. Here you learn how load gets added to a day — the two kinds of thing that generate it, and how their amounts pile up when they overlap.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>A <strong>consumer</strong> is anything that <em>uses up</em> part of a day — a task, a meeting, a big project. Think of them as blocks you drop into the day.</p>
+
+    <p>There are two flavours:</p>
+    <ul>
+      <li><strong>Things that happen regularly</strong> — like a stand-up meeting every morning.</li>
+      <li><strong>Things that run for a stretch</strong> — like a project that lasts a whole month.</li>
+    </ul>
+
+    <p>When several land on the <strong>same day</strong>, their blocks <strong>stack up</strong>. More blocks = a taller pile = a busier, <span style="color:#9a3b2e">redder</span> day.</p>
+
+    <div class="stackpix">
+      <div class="col">
+        <span class="tower"><b class="s-standup">standup</b></span>
+        quiet day
+      </div>
+      <div class="col">
+        <span class="tower"><b class="s-campaign" style="line-height:2.4rem">project</b><b class="s-standup">standup</b></span>
+        busy day
+      </div>
+    </div>
+    <p>Same stand-up on both days — but on the right, a project lands too, so the pile is taller and the day is hotter.</p>
+
+    <div class="heat" style="--cols:14" data-heat data-cells="0.2,0.2,0.2,0.2,0,0,0.2,0.55,0.7,0.85,0.95,0.7,0,0"></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>slammed</span></div>
+
+    <div class="note takeaway">Consumers are the things that fill a day. When they overlap, their amounts <strong>add up</strong> — the day gets taller and redder.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>A <strong>Consumer</strong> is anything that generates load over time. It exists in both Modes. The core rule is simple:</p>
+
+    <div class="note key">A day's total load = the <strong>sum</strong> of every active Consumer's amount on that day. "Layering" is just summation.</div>
+
+    <p>Consumers come in two shapes:</p>
+    <table class="grid">
+      <tr><th></th><th>Recurring Consumer</th><th>Spanning Consumer</th></tr>
+      <tr><td>Pattern</td><td>A per-active-day amount on a recurrence (every weekday, specific weekdays, a cadence), optionally date-bounded</td><td>A single dated range with a <strong>Load Shape</strong></td></tr>
+      <tr><td>Good for</td><td>Standing duties &amp; BAU — standups, on-call, weekly 1:1s</td><td>Campaigns, programmes, projects — a one-off stretch of work</td></tr>
+      <tr><td>Amount varies?</td><td>No — same amount each active day</td><td>Yes — flat, a ramp-up/down, or named <strong>Phases</strong></td></tr>
+    </table>
+
+    <p>A <strong>Load Shape</strong> describes how a Spanning Consumer's amount is distributed across its range. A <strong>Phase</strong> is a named sub-span carrying its own amount — e.g. a <code>prep</code> phase at a low amount, then a <code>live</code> phase at a high amount.</p>
+
+    <p><strong>Worked example.</strong> A recurring stand-up of <code>60</code> min every weekday, plus a spanning campaign with two Phases: <code>prep</code> at <code>120</code>, then <code>live</code> at <code>300</code>. The day's load is the sum:</p>
+
+    <table class="grid">
+      <tr><th>Day</th><th>Standup (recurring)</th><th>Campaign (spanning)</th><th>Total load</th></tr>
+      <tr><td>Before campaign</td><td><code>60</code></td><td><code>0</code></td><td><code>60</code></td></tr>
+      <tr><td>During <code>prep</code></td><td><code>60</code></td><td><code>120</code></td><td><strong><code>180</code></strong></td></tr>
+      <tr><td>During <code>live</code></td><td><code>60</code></td><td><code>300</code></td><td><strong><code>360</code></strong></td></tr>
+    </table>
+
+    <div class="heat" style="--cols:14" data-heat data-cells="0.15,0.15,0.15,0.15,0,0,0.15,0.45,0.45,0.45,0.9,0.9,0,0"></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>1.0 full</span><span style="margin-left:auto">recurring floor + campaign prep→live</span></div>
+    <p>The low steady band is the recurring stand-up; it lifts into <code>prep</code>, then jumps in the <code>live</code> Phase — every Cell is the running sum.</p>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>Summing Consumers is the <strong>additive-superposition</strong> assumption: independent load streams combine linearly, so total demand on a day is <code>&Sigma; amount<sub>i</sub></code>. This is the same layering that <strong>Additive mode</strong> uses to build relative "hotness" with no declared Capacity — here the layered sum is compared against a Reference (Effective Capacity in Subtractive mode), there against a Normalisation Max.<sup class="cite"><a href="../RESOURCES.md">1</a></sup></p>
+
+    <p>A <strong>Load Shape</strong> is a discretised <em>demand curve</em> sampled per day; <strong>Phases</strong> make it explicitly <em>piecewise-constant</em> (each Phase a step of fixed height). A ramp-up/down is a linear approximation of the same curve. This is deliberately coarse: the grain is one day, so any within-day profile collapses to a single per-day amount.</p>
+
+    <div class="heat" style="--cols:14" data-heat data-cells="0.1,0.2,0.35,0.5,0.65,0.8,0.9,0.8,0.65,0.5,0.35,0.2,0.1,0" data-flag=""></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>1.0</span><span style="margin-left:auto">a ramp-up/down Load Shape</span></div>
+
+    <p><strong>Where superposition breaks.</strong> Summation assumes streams are independent and additive. Real work has <em>context-switching cost</em>: two half-day tasks on the same day can cost more than one full day, because switching burns setup/attention that neither task "declares". The model can't see that — it will read two <code>0.5</code> Consumers as exactly <code>1.0</code>, never <code>1.2</code>. Interaction, coordination overhead and queueing (Lesson&nbsp;6) all live in that gap.<sup class="cite"><a href="../RESOURCES.md">2</a></sup></p>
+
+    <div class="note">Where this is a simplification: layering is a <em>linear</em> model of demand. It's exact for fungible, independent work and optimistic whenever tasks interfere. If your real constraint is attention-switching rather than raw hours, a summed heatmap will look cooler than reality — treat a busy multi-Consumer day as a floor, not a ceiling.</div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why it matters</h2>
+  <p>Getting demand right is half of every heatmap. Pick the wrong Consumer shape and the picture lies: model a month-long launch as a recurring daily task and you'll smear its ramp flat; model your weekly 1:1s as one big span and you'll bury the rhythm. Match the shape to how the work actually arrives.</p>
+
+  <h2>Your turn — model the demand</h2>
+  <p>For each situation, choose how you'd represent it.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">"Weekly 1:1s with each report, every Monday, indefinitely." How do you model this?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="recurring">A Recurring Consumer</button>
+      <button class="q-opt" data-choice="spanning">A Spanning Consumer</button>
+      <button class="q-opt" data-choice="reducer">A Reducer</button>
+    </div>
+    <p class="q-feedback" data-correct="recurring"
+       data-explain-recurring="Right. A standing duty on a cadence (every Monday, open-ended) is the textbook Recurring Consumer — a per-active-day amount on a recurrence."
+       data-explain-spanning="Spanning Consumers cover one dated range with a Load Shape. An indefinite weekly rhythm has no single range — it's a recurrence, so Recurring."
+       data-explain-reducer="Reducers cut capacity, not add demand. A meeting is load the Subject takes on, so it's a Consumer — and a recurring one."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">"A 6-week product launch that starts slow, then ramps up to a peak in the final fortnight." How do you model this?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="spanning">A Spanning Consumer with a phased/ramping Load Shape</button>
+      <button class="q-opt" data-choice="flatspan">A Spanning Consumer with a flat Load Shape</button>
+      <button class="q-opt" data-choice="recurring">A Recurring Consumer every weekday</button>
+    </div>
+    <p class="q-feedback" data-correct="spanning"
+       data-explain-spanning="Right. One dated range whose amount grows over time is a Spanning Consumer, and the ramp/peak is captured by its Load Shape — phases or a ramp-up."
+       data-explain-flatspan="It's a Spanning Consumer, but a flat shape throws away the very thing you described — the ramp to a peak. Use a phased or ramping Load Shape."
+       data-explain-recurring="A recurring per-day amount can't grow toward a peak; it repeats the same amount. A dated, shaped range is a Spanning Consumer."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A Spanning campaign in its live Phase adds 300/day. On Tuesdays a recurring stand-up adds 60. What load does the model show on a live-Phase Tuesday?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">360 — the two amounts sum</button>
+      <button class="q-opt" data-choice="max">300 — the larger one wins</button>
+      <button class="q-opt" data-choice="avg">180 — the two are averaged</button>
+    </div>
+    <p class="q-feedback" data-correct="sum"
+       data-explain-sum="Right. A day's load is the sum of all active Consumers: 300 + 60 = 360. Layering is summation, not max or mean."
+       data-explain-max="Consumers don't compete — they add. Both the campaign and the standup happen, so 300 + 60 = 360."
+       data-explain-avg="Averaging would hide real load. Overlapping Consumers sum: 300 + 60 = 360."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">You split a campaign's range into a low <code>prep</code> Phase and a high <code>live</code> Phase, each with its own amount. What have you defined?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="shape">A Load Shape made of two Phases</button>
+      <button class="q-opt" data-choice="two">Two separate Spanning Consumers</button>
+      <button class="q-opt" data-choice="dim">Two values of a Dimension</button>
+    </div>
+    <p class="q-feedback" data-correct="shape"
+       data-explain-shape="Right. Named sub-spans with their own amounts are Phases, and the sequence of Phases across the range is that one Consumer's Load Shape."
+       data-explain-two="It's still one Spanning Consumer over one range; prep and live are Phases within its Load Shape, not two Consumers (though modelling them separately would also sum)."
+       data-explain-dim="Dimensions are config attributes you tag and facet by, not the internal shape of a single Consumer. Named sub-spans with amounts are Phases."></p>
+  </div>
+
+  <div class="note build"><strong>In the tool:</strong> add <strong>Recurring Consumers</strong> for standing duties (pick the recurrence and per-day amount) and <strong>Spanning Consumers</strong> for projects (pick a range, then a Load Shape — flat, ramp, or Phases). The heatmap sums all active Consumers per Cell and repaints; in Subtractive mode that sum is divided by Effective Capacity from Lesson&nbsp;4.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read this next (primary source)</p>
+    <p style="margin:0;"><strong>Tom DeMarco &amp; Timothy Lister — <em>Peopleware</em>, and Gerald Weinberg on context-switching.</strong> The classic case that fragmented, overlapping work costs more than the sum of its parts — exactly the interaction that linear layering can't see. Curated links in <a href="../RESOURCES.md">RESOURCES.md</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Recurring or Spanning for on-call rotations?&rdquo;, &ldquo;How many Phases is too many?&rdquo;, or &ldquo;How do I show context-switching cost the model ignores?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0004-effective-capacity.html">&larr; Prev: Effective capacity</a>
+    <a href="0006-utilisation-and-the-100-percent-trap.html">Next: Utilisation &amp; the 100% trap &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints each [data-heat] grid from an explicit data-cells list.
+ * Values: 0→1+ on the blue→red ramp; -1 = Blackout (grey). Copied/adapted
+ * from the Lesson 1 painter. */
+(function () {
+  function color(v) {
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  document.querySelectorAll("[data-heat]").forEach(function (grid) {
+    var cells = (grid.getAttribute("data-cells") || "").split(",").map(Number);
+    cells.forEach(function (v) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.background = color(v);
+      grid.appendChild(cell);
+    });
+  });
+})();
+</script>
+</body>
+</html>

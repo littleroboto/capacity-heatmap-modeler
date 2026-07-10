@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 3 · Two modes: Subtractive vs Additive</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 3</p>
+  <h1>Two modes: Subtractive vs Additive</h1>
+  <p class="lede">The core fork of the whole tool. Everything about a heatmap is shared except one choice: what sets the point that maps to full red.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>There are two ways to decide when a day should look "red hot". Which one you pick depends on a single question: <strong>do you know the limit?</strong></p>
+
+    <p><strong>Way 1 — you know the limit.</strong> Think of a <strong>glass that holds 500ml</strong>. You know exactly when it's full. Pour in water and the glass goes toward red as it fills; pour past the brim and it's overflowing — truly too much. Red means "near or over the limit you know."</p>
+
+    <p><strong>Way 2 — you don't have a fixed limit.</strong> Now think about your calendar and the question <em>"which days were my busiest?"</em> There's no hard ceiling — you just want the busy days to <em>stand out</em> from the quiet ones. The busiest day becomes the reddest, and everything else is coloured relative to it. Red just means "hottest compared to the others."</p>
+
+    <div class="note takeaway">Know the limit? Colour toward that limit (the <strong>glass</strong>). No fixed limit? Just show which days were hottest relative to each other (the <strong>busiest-day</strong> view).</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>The two ways have names. Both paint Cells on the same blue&rarr;red ramp; they differ only in what the <strong>Reference</strong> (full red, <code>1.0</code>) is.</p>
+
+    <h3>Subtractive mode — you have a Capacity</h3>
+    <p>The Subject has a declared <strong>Capacity</strong>. The Reference is the Cell's <strong>Effective Capacity</strong>, so:</p>
+    <p class="mono">Load Intensity = consumed &divide; effective capacity</p>
+    <p>A day starts blue and heats up as <strong>Consumers</strong> use it up. Because the Reference is a real limit, <code>&gt;1.0</code> is <strong>real, meaningful overload</strong>.</p>
+    <p><strong>Worked example.</strong> A nurse can see <strong>20 patients/day</strong> (Effective Capacity = 20). On a day with 24 booked, Load Intensity = <code>24 &divide; 20 = 1.2</code> &mdash; deepest red, a genuine 20% overload.</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat="subtractive"></div>
+    <div class="heat-legend"><span>0.0 empty</span><span class="heat-ramp"></span><span>1.0+ overload</span></div>
+
+    <h3>Additive mode — no Capacity</h3>
+    <p>The Subject has <strong>no declared Capacity</strong>. The Reference is a <strong>Normalisation Max</strong> — the hottest Cell in the visual, or a value you set. Cells start empty and heat up as Consumers layer in, painted <em>relative</em> to that max. There is <strong>no true overload</strong>: nothing can pass the top of the ramp because the top <em>is</em> the busiest observed Cell.</p>
+    <p><strong>Worked example.</strong> A social account posts on many days with no hard ceiling. The busiest day (say 9 posts) becomes the Normalisation Max and paints deepest red; a 3-post day paints at <code>3 &divide; 9 = 0.33</code>. It only tells you that day was a third as hot as the busiest — not that anything is "over".</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat="additive"></div>
+    <div class="heat-legend"><span>0.0 coolest</span><span class="heat-ramp"></span><span>1.0 hottest seen</span></div>
+
+    <h3>When to use which</h3>
+    <table class="grid">
+      <tr><th>Question</th><th>Subtractive</th><th>Additive</th></tr>
+      <tr><td>Is there a declared Capacity?</td><td>Yes</td><td>No</td></tr>
+      <tr><td>What is the Reference?</td><td>Effective Capacity</td><td>Normalisation Max</td></tr>
+      <tr><td>What does red mean?</td><td>Near/over a real limit</td><td>Hottest relative to peers</td></tr>
+      <tr><td>Can <code>&gt;1.0</code> overload happen?</td><td>Yes — real overload</td><td>No — relative only</td></tr>
+      <tr><td>Use it when&hellip;</td><td>You know the ceiling and care about breaching it</td><td>You only want to spot the busiest periods</td></tr>
+    </table>
+
+    <div class="note key">Same machine, one switch. Pick Subtractive when a real limit exists and breaching it matters. Pick Additive when there's no limit and you only want relative heat.</div>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>The two modes differ in <strong>exactly one thing</strong>: what sets the Reference. Subtractive binds the Reference to a declared Effective Capacity; Additive binds it to a Normalisation Max. Everything else — Consumers, the daily grain, summation of load, the single perceptual colour ramp — is <strong>shared, unchanged machinery</strong>.</p>
+
+    <p>That is deliberate <strong>deep-module design</strong>: one mechanism (normalise load against a Reference, paint on one ramp) exposed through two thin <em>policies</em> for what the Reference is. The narrow interface (a mode flag) hides a large shared implementation, which is exactly the shape a good module should have — a simple surface over substantial, reused internals rather than two parallel code paths.<sup class="cite"><a href="../RESOURCES.md">1</a></sup> It also mirrors the operations-management view that utilisation is always <em>load relative to a reference capacity</em>; the modes just change where that capacity number comes from.<sup class="cite"><a href="https://www.tocinstitute.org/theory-of-constraints.html">2</a></sup></p>
+
+    <p><strong>Edge — switching Additive &rarr; Subtractive.</strong> A model often starts Additive (no known limit) and later a real capacity becomes known. Switching modes re-anchors the Reference from "hottest observed Cell" to a fixed Effective Capacity, so the <em>same</em> load can jump from a comfortable-looking <code>0.6</code> to a true <code>1.2</code> overload — or the reverse. The colours are only comparable within one mode's Reference.</p>
+
+    <div class="note">Where it's a simplification / the danger of Additive: a relative scale has no notion of "safe". A quiet-but-fine period can look alarming simply because it contains the hottest Cell in view — the Normalisation Max is set by the data, not by any real limit. Re-render a calmer window and the same days recolour. Never read Additive red as "over capacity"; it only ever means "hottest here."</div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why this is the first real decision</h2>
+  <p>Every other choice in a Scenario — Capacity, Reducers, Consumers, the colour you end up staring at — hangs off this fork. Get it wrong and a heatmap is "pretty but wrong": Additive red mistaken for overload, or a real ceiling you forgot to declare so genuine overloads never show.</p>
+
+  <h2>Pick the mode</h2>
+  <p>For each situation, choose the mode that models it correctly.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">A nurse can see 20 patients per day, and you want to flag the days that go over.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="subtractive">Subtractive — a known limit is exceeded</button>
+      <button class="q-opt" data-choice="additive">Additive — relative hotness only</button>
+    </div>
+    <p class="q-feedback" data-correct="subtractive"
+       data-explain-subtractive="Right. A declared Capacity (20/day) is the Reference, so Load Intensity = seen ÷ 20 and >1.0 is genuine overload you can flag."
+       data-explain-additive="No — you have a real ceiling (20/day) and care about breaching it. That's exactly what Subtractive is for; Additive can't show true overload."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A social account with no hard limit; you just want to spot the busiest posting weeks.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="additive">Additive — show relative hotness</button>
+      <button class="q-opt" data-choice="subtractive">Subtractive — measure against a limit</button>
+    </div>
+    <p class="q-feedback" data-correct="additive"
+       data-explain-additive="Right. There's no declared Capacity, so the Reference is a Normalisation Max and the busiest weeks simply paint reddest — relative heat, no true overload."
+       data-explain-subtractive="No — there's no real ceiling to consume against. Subtractive needs a declared Capacity; here you only want relative busyness, which is Additive."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A kitchen with a known ceiling of covers it can plate per day.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="subtractive">Subtractive — covers consume a real capacity</button>
+      <button class="q-opt" data-choice="additive">Additive — just show relative heat</button>
+    </div>
+    <p class="q-feedback" data-correct="subtractive"
+       data-explain-subtractive="Right. The covers-per-day ceiling is a declared Capacity, so bookings consume it and a day past the ceiling shows real overload above 1.0."
+       data-explain-additive="No — the kitchen has a known daily ceiling, so a real limit exists. Model it Subtractive so breaching the ceiling actually shows as overload."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">Website mentions of a brand over time, with no defined capacity — you want relative heat.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="additive">Additive — relative hotness, no true limit</button>
+      <button class="q-opt" data-choice="subtractive">Subtractive — mentions consume a capacity</button>
+    </div>
+    <p class="q-feedback" data-correct="additive"
+       data-explain-additive="Right. Mentions have no declared Capacity, so the Reference is a Normalisation Max and the busiest window paints reddest — purely relative, no overload."
+       data-explain-subtractive="No — there's no capacity for mentions to consume. With no declared limit and only relative heat wanted, this is Additive."></p>
+  </div>
+
+  <div class="note build">In the tool, the mode is a single Scenario setting. Choosing Subtractive reveals the Capacity, Base Capacity, and Reducer fields; choosing Additive hides them and offers a Normalisation Max instead. Everything else — Consumers, days, the ramp — stays identical.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read/watch this next (primary source)</p>
+    <p style="margin:0;"><strong>Theory of Constraints — capacity, load, and utilisation.</strong> The operations-management backdrop for why "load against a reference capacity" is the right frame, and why a real limit (Subtractive) behaves differently from a relative one. Primer: <a href="https://www.tocinstitute.org/theory-of-constraints.html">tocinstitute.org</a>. Further sources: <a href="../RESOURCES.md">RESOURCES.md</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Can I switch a live model from Additive to Subtractive?&rdquo;, &ldquo;What if I only know a rough limit?&rdquo;, or &ldquo;Why can't Additive ever show overload?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0002-reading-the-heatmap.html">&larr; Prev: Reading the heatmap</a>
+    <a href="0004-effective-capacity.html">Next: Effective Capacity &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints the demo heatmaps. Adapted from Lesson 1's painter. Two scenarios:
+   "subtractive" shows a real >1.0 overload streak against a fixed Reference;
+   "additive" shows relative hotness that never exceeds the top of the ramp. */
+(function () {
+  function color(v) {
+    // v in [0,1.1+]; blue #2f6f8f → sand #eadfae → red #9a3b2e, grey for blackout(<0)
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  function intensity(scenario, i) {
+    if (scenario === "subtractive") {
+      // consumed ÷ effective capacity: mostly under 1.0, with a real overload streak
+      var base = 0.4 + 0.3 * Math.sin(i / 4);
+      if (i >= 20 && i <= 25) return 1.15;   // genuine >1.0 overload
+      return base;
+    }
+    // additive: relative hotness, hottest cell hits (but never exceeds) the top
+    var rel = 0.3 + 0.35 * Math.sin(i / 3.2) + 0.15 * Math.sin(i / 1.7);
+    return Math.min(1, Math.max(0, rel));    // capped at 1.0 — no true overload
+  }
+  document.querySelectorAll("[data-demo-heat]").forEach(function (grid) {
+    var scenario = grid.getAttribute("data-demo-heat") || "subtractive";
+    var cols = parseInt(getComputedStyle(grid).getPropertyValue("--cols")) || 14;
+    var n = cols * 4;
+    for (var i = 0; i < n; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.background = color(intensity(scenario, i));
+      grid.appendChild(cell);
+    }
+  });
+})();
+</script>
+</body>
+</html>

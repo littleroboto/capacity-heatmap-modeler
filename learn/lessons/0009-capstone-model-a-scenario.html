@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 9 · Capstone: model a scenario end-to-end</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson-specific: label the weeks under the launch heatmap. */
+  .week-labels {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
+    max-width: 24rem; margin: 0.2rem 0 1rem;
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.68rem; color: var(--ink-soft);
+    text-align: center;
+  }
+</style>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 9</p>
+  <h1>Capstone: model a scenario end-to-end</h1>
+  <p class="lede">Everything in one build. We'll take a real situation — a small marketing team facing a big launch — and turn it into a single, trustworthy heatmap, one decision at a time.</p>
+
+  <p><strong>The running example.</strong> A 5-person marketing team runs a 6-week product launch. We'll model it in the Declared Unit <code>hours</code>, and watch the launch weeks heat up.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>Meet the team: five people who normally handle the usual marketing work — emails, social posts, the odd meeting. That's their <strong>normal week</strong>: steady, a bit of blue-to-warm, nothing scary.</p>
+
+    <p>Now the <strong>big launch</strong> arrives. For six weeks the team has extra work on top of the normal stuff. At first it's light (planning and prep), then in the final two weeks it goes big (the launch actually happens). Watch the last weeks turn red:</p>
+
+    <div class="heat" style="--cols:6" data-rows="5" data-heat="launch"></div>
+    <div class="week-labels"><span>Wk 1</span><span>Wk 2</span><span>Wk 3</span><span>Wk 4</span><span>Wk 5</span><span>Wk 6</span></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>too full</span></div>
+
+    <p>The picture tells the story instantly: the first four weeks are fine, but weeks 5 and 6 glow red — the team is over-full right when the launch lands. Now you can <em>do</em> something about it before it happens: move work earlier, add help, or push a deadline.</p>
+
+    <div class="note takeaway">Build the normal week first, add the big project on top, then look for the red. Red weeks are where the plan breaks — and now you can see them coming.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>Modelling is a fixed sequence of decisions. Here it is, with real numbers for our team.</p>
+
+    <ol class="steps">
+      <li><strong>Pick the Subject / faceting level.</strong> We want the whole team, so we <em>don't</em> facet by <code>person</code> — the five people's capacity and load <strong>sum</strong> into one team Subject.</li>
+      <li><strong>Choose the Mode.</strong> The team has a known, declared capacity, so <strong>Subtractive</strong>: Cells start blue and fill toward red, and <code>&gt;1.0</code> is real overload.</li>
+      <li><strong>Set the Declared Unit.</strong> <code>hours</code>. Every Capacity and Consumer below is in hours; the tool won't convert, so we stay consistent.</li>
+      <li><strong>Set Base Capacity + weekday pattern.</strong> 5 people × 6 focused hours = <strong>30 h/day</strong> on weekdays, <strong>0</strong> at weekends.</li>
+      <li><strong>Apply Reducers / Blackouts.</strong> One public holiday → a <strong>Blackout</strong> (Effective Capacity 0, grey). A 2-day off-site conference → a <strong>Reducer</strong> of <code>0.5</code> over those two days (Effective Capacity 15 h/day).</li>
+      <li><strong>Add Consumers.</strong> A <strong>Recurring Consumer</strong> for BAU: <strong>12 h</strong> every weekday. A <strong>Spanning Consumer</strong> for the launch across all six weeks, shaped with two <strong>Phases</strong>: <code>prep</code> (weeks 1–4) at <strong>6 h/day</strong>, then <code>live</code> (weeks 5–6) at <strong>22 h/day</strong>.</li>
+      <li><strong>Decide Composition.</strong> One capacity Track for the team, so Composition is <code>sum</code> (the five are treated as fungible). We'll revisit this at Expert level.</li>
+      <li><strong>Read the result &amp; set a utilisation band.</strong> Target ~<strong>80%</strong> (Load Intensity ≈ 0.8) as a healthy band, not 100%.</li>
+    </ol>
+
+    <p><strong>The arithmetic.</strong> Load Intensity = consumed ÷ Effective Capacity.</p>
+    <ul>
+      <li>Prep weekday: (12 + 6) ÷ 30 = <strong>0.60</strong> — comfortably inside the band.</li>
+      <li>Live weekday: (12 + 22) ÷ 30 = <strong>1.13</strong> — over 1.0, real overload.</li>
+      <li>Live day during the conference: 34 ÷ 15 = <strong>2.27</strong> — deep red, badly over.</li>
+    </ul>
+
+    <div class="heat" style="--cols:6" data-rows="5" data-heat="launch"></div>
+    <div class="week-labels"><span>Wk 1</span><span>Wk 2</span><span>Wk 3</span><span>Wk 4</span><span>Wk 5</span><span>Wk 6</span></div>
+    <div class="heat-legend"><span>0.0</span><span class="heat-ramp"></span><span>&ge;1.0 overload</span><span style="margin-left:auto">grey = blackout</span></div>
+
+    <p><strong>Reading it:</strong> weeks 1–4 sit near 0.6 (inside the ~80% band). Weeks 5–6 exceed the band at 1.13, and the overload is worst where the <code>live</code> Phase lands on the conference-reduced days. That's the actionable finding: the launch weeks are over capacity, concentrated in the <code>live</code> Phase.</p>
+
+    <table class="grid">
+      <tr><th>Decision</th><th>Choice</th></tr>
+      <tr><td>Subject / faceting</td><td>Whole team (don't facet <code>person</code> → sum)</td></tr>
+      <tr><td>Mode</td><td>Subtractive (known capacity)</td></tr>
+      <tr><td>Declared Unit</td><td><code>hours</code></td></tr>
+      <tr><td>Base Capacity</td><td>30 h weekdays / 0 weekends</td></tr>
+      <tr><td>Reducers / Blackouts</td><td>Holiday (Blackout); conference (Reducer 0.5)</td></tr>
+      <tr><td>Consumers</td><td>BAU 12 h/day (Recurring); launch (Spanning, prep/live Phases)</td></tr>
+      <tr><td>Composition</td><td><code>sum</code> (single fungible Track)</td></tr>
+      <tr><td>Utilisation band</td><td>~80% target</td></tr>
+    </table>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>The build is mechanical; the <strong>judgement calls</strong> are where models go right or wrong.</p>
+
+    <ul>
+      <li><strong>Subtractive vs Additive.</strong> We chose Subtractive because a defensible capacity number exists (headcount × focused hours). If that number were fiction, Additive would be more honest: relative "hotness" with no false <code>&gt;1.0</code> overload claim (Lesson&nbsp;6<sup class="cite"><a href="0006-utilisation-and-the-100-percent-trap.html">6</a></sup>).</li>
+      <li><strong>One Spanning Consumer with Phases, or several?</strong> Modelling the launch as a single Spanning Consumer with <code>prep</code>/<code>live</code> Phases keeps it as one thing you can move or resize. If prep and live are run by different people with independent timelines, splitting into separate Consumers models them more truthfully — at the cost of a busier Scenario.</li>
+      <li><strong>Sum vs min for team capacity.</strong> We summed the five as fungible. But if every launch asset needs one legal approver, the team is <em>coupled</em>: real capacity is gated by that approver, so Effective Capacity should be <code>min</code> across Tracks, with the approver as the <strong>Constraint</strong> (Lesson&nbsp;7<sup class="cite"><a href="0007-composition-and-constraints.html">7</a></sup>). Summing here would overstate what the team can actually ship.</li>
+    </ul>
+
+    <div class="note">Where the finished model is still a simplification: collapsing each day to one Load Intensity hides <em>within-day queueing</em> (a day can read 0.9 while work still piles up behind a single approver) and <strong>context-switching cost</strong> (juggling BAU and launch is more expensive than the raw sum of hours suggests). The heatmap flags <em>which</em> days are hot; it doesn't model the intraday dynamics or the tax of splitting attention.<sup class="cite"><a href="../RESOURCES.md">g</a></sup></div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Your turn — model the launch</h2>
+  <p>A chained mini-scenario. Same team, same launch — make each modelling call.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">The team has a defensible capacity number (headcount × focused hours). Which Mode?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sub">Subtractive mode</button>
+      <button class="q-opt" data-choice="add">Additive mode</button>
+    </div>
+    <p class="q-feedback" data-correct="sub"
+       data-explain-sub="Right. A known, declared Capacity means Subtractive: Load Intensity = consumed ÷ Effective Capacity, and >1.0 is genuine overload you can act on."
+       data-explain-add="Additive is for when no real capacity exists (relative hotness). Here a defensible capacity number exists, so Subtractive is the honest choice."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">The launch runs over one dated 6-week range with a low prep phase then a high live phase. How do you model it?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="span">Spanning Consumer with Phases</button>
+      <button class="q-opt" data-choice="recur">Recurring Consumer, weekdays</button>
+      <button class="q-opt" data-choice="reducer">A Reducer over the range</button>
+    </div>
+    <p class="q-feedback" data-correct="span"
+       data-explain-span="Right. A dated range with a shaped load (prep low, live high) is a Spanning Consumer with named Phases — exactly the Load Shape it's built for."
+       data-explain-recur="Recurring Consumers are for standing BAU on a recurrence, not a single dated project with a rising shape. The launch is Spanning."
+       data-explain-reducer="A Reducer lowers capacity; the launch adds demand. It's a Consumer, not a Reducer."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">Every launch asset must clear one legal approver before it ships. How should team capacity combine?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="min">Min — the approver caps it</button>
+      <button class="q-opt" data-choice="sum">Sum — capacities add up</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. The approver couples the whole team in series, so Effective Capacity is min across Tracks — the approver is the Constraint. Summing would overstate real throughput (Lesson 7)."
+       data-explain-sum="Summing assumes fungible, parallel sources. A single mandatory approver makes the team coupled, so the weakest Track (min) caps output."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">The finished heatmap reads ~0.6 for weeks 1–4 and 1.13 for weeks 5–6. What does it tell you?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="over">Live weeks exceed the band</button>
+      <button class="q-opt" data-choice="fine">Every week is within target</button>
+      <button class="q-opt" data-choice="under">The team is under-used</button>
+    </div>
+    <p class="q-feedback" data-correct="over"
+       data-explain-over="Right. Prep weeks sit inside the ~80% band, but the live weeks at 1.13 are past 1.0 — real overload concentrated in the launch's live Phase. That's where to intervene."
+       data-explain-fine="Weeks 5–6 read 1.13, which is above 1.0 — genuine overload, not within a ~80% band."
+       data-explain-under="Under-use would be low intensity throughout. Here the live weeks are over 1.0, so the problem is overload, not slack."></p>
+  </div>
+
+  <div class="note build">In the tool, this whole capstone is one <strong>Scenario</strong>: Subtractive mode, unit <code>hours</code>, a Base Capacity with a weekday pattern, a holiday Blackout and a conference Reducer, a Recurring BAU Consumer, a Spanning launch Consumer with <code>prep</code>/<code>live</code> Phases, and a <code>sum</code> (or <code>min</code>) Composition. Save it, tweak a number, and the heatmap re-paints.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read/watch this next (primary source)</p>
+    <p style="margin:0;"><strong>Eliyahu M. Goldratt — <em>The Goal</em> / Theory of Constraints.</strong> The clearest case that a system's real output is set by its Constraint, not the sum of its parts — the judgement call at the heart of this capstone. Overview: <a href="https://www.tocinstitute.org/theory-of-constraints.html">tocinstitute.org</a>. More sources in <a href="../RESOURCES.md">RESOURCES.md</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> Now try your own situation: tell me your Subject, your Declared Unit, and your big upcoming project, and I'll help you pick the Mode, shape the Consumers, and choose sum vs min. The <a href="../reference/glossary.html">glossary</a> has every term in one place.</p>
+
+  <p class="nav">
+    <a href="0008-scaling-person-team-company.html">&larr; Prev: Scaling person → team → company</a>
+    <a href="../index.html">Next: Course home &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints the launch heatmap: 6 weeks (columns) × 5 weekdays (rows).
+   Cell i → week = i % 6, day = floor(i / 6). Prep weeks cool, live weeks red,
+   one holiday Blackout (grey) and two conference-reduced (hotter) days. */
+(function () {
+  function color(v) {
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  function launch(week, day) {
+    if (week === 1 && day === 2) return -1;            // public holiday → Blackout
+    var prep = 0.60, live = 1.13;                       // computed intensities
+    var v = week < 4 ? prep : live;
+    if (week >= 4 && day < 2) v = 1.5;                  // live days on conference-reduced capacity
+    return v + 0.04 * Math.sin(day + week);
+  }
+  document.querySelectorAll('[data-heat="launch"]').forEach(function (grid) {
+    var cols = parseInt(getComputedStyle(grid).getPropertyValue("--cols")) || 6;
+    var rows = parseInt(grid.getAttribute("data-rows")) || 5;
+    for (var i = 0; i < cols * rows; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.background = color(launch(i % cols, Math.floor(i / cols)));
+      grid.appendChild(cell);
+    }
+  });
+})();
+</script>
+</body>
+</html>

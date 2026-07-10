@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 6 · Utilisation and the 100% trap</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 6</p>
+  <h1>Utilisation and the 100% trap</h1>
+  <p class="lede">A heatmap that's solid deep-red is a <strong>warning light</strong>, not a trophy. Being totally full is fragile, not efficient — aim for mostly warm, not scalding.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>Think about a motorway. When it's half full, cars flow freely — someone can merge, brake, or speed up and nothing goes wrong. But when it's <em>nearly</em> full, one extra car, one tap of the brakes, and the whole thing seizes into a jam. Same road, wildly different behaviour.</p>
+
+    <p>Being "totally full" isn't a win. It means there's <strong>no room for surprises</strong>. And there are always surprises.</p>
+
+    <p>So when a heatmap goes solid deep-red, day after day, that's not a picture of a well-used team — it's the traffic jam waiting to happen:</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat="danger"></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>jammed</span></div>
+
+    <p>A healthy heatmap is mostly <em>warm</em> — busy, but with a little cool room left so a bad day doesn't cause a pile-up:</p>
+
+    <div class="heat" style="--cols:14" data-demo-heat="healthy"></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>slammed</span></div>
+
+    <div class="note takeaway">All-red&nbsp;=&nbsp;danger, not success. A good heatmap runs warm with a little slack — like a motorway that still flows.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>In <strong>Subtractive mode</strong>, Load Intensity <em>is</em> utilisation: <code>Load Intensity = consumed ÷ Effective Capacity</code>. So a Cell at <code>1.0</code> full-red means demand exactly equals capacity — <strong>zero slack</strong>. Anything unexpected (a sick day, a late input, a scope bump) has nowhere to go, so it spills into overload (<code>&gt;1.0</code>) or lateness.</p>
+
+    <p><strong>Rule of thumb:</strong> aim for a sustained Load Intensity of roughly <strong>0.75–0.85</strong>, not <code>1.0</code>. That band keeps a Subject genuinely busy while leaving enough room to absorb normal variability.<sup class="cite"><a href="../RESOURCES.md">1</a></sup></p>
+
+    <table class="grid">
+      <tr><th>Load Intensity</th><th>Interpretation</th><th>What to do</th></tr>
+      <tr><td><code>0 – 0.5</code></td><td>Idle / spare — lots of unused room</td><td>Take on more, or reduce Capacity</td></tr>
+      <tr><td><code>0.5 – 0.7</code></td><td>Comfortable, plenty of slack</td><td>Fine; room to grow</td></tr>
+      <tr><td><code>0.7 – 0.85</code></td><td><strong>Healthy</strong> — the sustainable band</td><td>Hold here</td></tr>
+      <tr><td><code>0.85 – 1.0</code></td><td>Tight — little slack, fragile</td><td>Watch closely; shed load if it persists</td></tr>
+      <tr><td><code>&gt; 1.0</code></td><td>Overloaded — work spills, lateness builds</td><td>Cut demand or add Effective Capacity</td></tr>
+    </table>
+
+    <p>This is why a deep-red run matters more than a single red Cell. One hot day is noise; a <em>sustained</em> band above <code>0.85</code> means the Subject has no buffer left and every wobble now becomes a delay.<sup class="cite"><a href="../RESOURCES.md">1</a></sup></p>
+
+    <div class="note key">Full-red is not the target. A heatmap parked at <code>1.0</code> has optimised away the one thing that keeps it reliable: slack.</div>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>The fragility at high utilisation isn't a hunch — it's a queueing result. As utilisation <code>&rho; &rarr; 1</code>, the expected time work spends waiting grows like <code>1/(1&minus;&rho;)</code>: a <strong>hockey stick</strong>, not a straight line. Going from 80% to 90% utilised doesn't add 10% of wait — it roughly <em>doubles</em> it; 90% to 95% doubles it again.<sup class="cite"><a href="https://en.wikipedia.org/wiki/Queueing_theory">2</a></sup></p>
+
+    <p>Kingman's formula (the <strong>VUT equation</strong>) makes the drivers explicit: mean wait ≈ <em>Variability</em> × <em>Utilisation</em> × <em>Time</em>. The utilisation term is that same <code>&rho;/(1&minus;&rho;)</code> blow-up, and it's <em>multiplied</em> by variability — so the more variable the work, the more punishing high utilisation becomes.<sup class="cite"><a href="https://en.wikipedia.org/wiki/Kingman%27s_formula">3</a></sup></p>
+
+    <p>Behind all of it sits <strong>Little's Law</strong>, the conservation identity: <code>WIP = throughput × cycle time</code>. If throughput is capped by capacity but work keeps arriving, WIP rises — and by Little's Law, so does cycle time. The queue is real even when you can't see it.<sup class="cite"><a href="https://en.wikipedia.org/wiki/Little%27s_law">4</a></sup></p>
+
+    <p>The catch for this tool: a heatmap shows <strong>utilisation only</strong> — it never shows the <em>queue</em> that utilisation implies. A sustained deep-red run predicts exploding lead times, but the colour is capped, so a Subject pinned at <code>1.0</code> for a month looks the same on day 1 and day 30 even though the backlog behind it is compounding.</p>
+
+    <div class="note">Where it's a simplification: the daily Load Intensity scalar collapses a whole day to one number, so it cannot render the queue directly. Treat any deep-red <em>run</em> as a <strong>leading indicator</strong> of blown-out lead times — the heatmap tells you the pressure, not the pile-up it's already producing.</div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why this trap is so common</h2>
+  <p>Because "everyone's fully utilised" <em>sounds</em> like good management, and a wall of red <em>looks</em> decisive. Both instincts are backwards. Slack is not waste — it's the capacity to absorb the variability that every real system carries. Optimise it away and the first surprise turns into a jam.</p>
+
+  <h2>Your turn — read the utilisation</h2>
+  <p>For each situation, decide how to judge or model it.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">A team's heatmap sits steadily around Load Intensity 0.8 for the whole quarter.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="healthy">Healthy — leave it</button>
+      <button class="q-opt" data-choice="risk">At risk — push it higher</button>
+    </div>
+    <p class="q-feedback" data-correct="healthy"
+       data-explain-healthy="Right. ~0.75–0.85 is the sustainable band: genuinely busy, but with enough slack to absorb normal variability. This is the target, not a problem to fix."
+       data-explain-risk="Backwards — 0.8 is exactly where you want to be. Pushing toward 1.0 removes the slack that keeps the team reliable."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">You want to pick a sustainable utilisation target band for a Subject.</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="band">Around 0.75–0.85</button>
+      <button class="q-opt" data-choice="full">Right at 1.0, fully used</button>
+    </div>
+    <p class="q-feedback" data-correct="band"
+       data-explain-band="Right. ~0.75–0.85 keeps a Subject busy while leaving room for the unexpected. It's the defensible target band."
+       data-explain-full="1.0 leaves zero slack, so any surprise spills into overload or lateness. Full is fragile, not optimal."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">A Subject's heatmap has been solid deep-red (≈1.0) for three straight weeks. What does it tell you?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="overload">Overloaded — lead times will blow out</button>
+      <button class="q-opt" data-choice="great">Great — capacity is fully used</button>
+    </div>
+    <p class="q-feedback" data-correct="overload"
+       data-explain-overload="Right. Sustained ≈1.0 means no slack; by queueing theory the hidden backlog and lead times are already compounding, even though the capped colour can't show it."
+       data-explain-great="No — a sustained red run is a warning. At ~100% utilisation waiting time explodes; the colour is capped but the queue behind it is not."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">Two Subjects both sit at 0.9. One does highly variable work (surprises common); the other does steady, predictable work. Which is more dangerous?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="variable">The variable one — more risk</button>
+      <button class="q-opt" data-choice="same">Identical — same intensity</button>
+    </div>
+    <p class="q-feedback" data-correct="variable"
+       data-explain-variable="Right. Wait grows with variability × utilisation (Kingman/VUT). At high utilisation, variability is multiplied in — so the variable Subject is far more exposed at the same 0.9."
+       data-explain-same="Same colour, not same risk. Adding variability at high utilisation is what makes waits explode — the variable Subject is the dangerous one."></p>
+  </div>
+
+  <div class="note build">In the tool, read utilisation off the <strong>Subtractive-mode</strong> Load Intensity and treat any sustained band above <code>0.85</code> as a signal to cut Consumer load or raise Effective Capacity — not as a job well done. A deep-red <em>run</em> is your early-warning marker for lead times that the heatmap itself can't draw.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read this next (primary source)</p>
+    <p style="margin:0;"><strong>Donald Reinertsen — <em>The Principles of Product Development Flow</em>.</strong> The definitive case that high utilisation is economically destructive in knowledge work: invisible queues, not idle people, are what wreck flow. See <a href="../RESOURCES.md">RESOURCES.md</a> for this and the queueing sources behind it.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Why is 0.8 better than 1.0 if we're paying for the capacity?&rdquo;, &ldquo;How do I spot a hidden queue on a capped heatmap?&rdquo;, or &ldquo;What target band should I use for very variable work?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0005-consumers-and-load-shapes.html">&larr; Prev: Consumers &amp; load shapes</a>
+    <a href="0007-composition-and-constraints.html">Next: Composition &amp; constraints &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints the demo heatmaps. Pattern chosen via data-demo-heat: danger | healthy | wave. */
+(function () {
+  function color(v) {
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  document.querySelectorAll("[data-demo-heat]").forEach(function (grid) {
+    var cols = parseInt(getComputedStyle(grid).getPropertyValue("--cols")) || 14;
+    var pattern = grid.getAttribute("data-demo-heat") || "wave";
+    var n = cols * 4;
+    for (var i = 0; i < n; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      var v;
+      if (pattern === "danger") {
+        v = 0.95 + 0.1 * Math.sin(i / 3.1);      // pinned near/over full — solid deep red
+      } else if (pattern === "healthy") {
+        v = 0.78 + 0.09 * Math.sin(i / 4.2);     // warm-not-scalding band ~0.75–0.85
+        if (i > 0 && i % 41 === 0) v = -1;       // an occasional blackout for realism
+      } else {
+        v = 0.45 + 0.4 * Math.sin(i / 5) + 0.25 * Math.sin(i / 2.3);
+      }
+      cell.style.background = color(v);
+      grid.appendChild(cell);
+    }
+  });
+})();
+</script>
+</body>
+</html>

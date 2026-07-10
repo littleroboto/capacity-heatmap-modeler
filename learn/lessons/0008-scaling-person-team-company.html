@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 8 · Scaling: person → team → company</title>
+<link rel="stylesheet" href="../assets/course.css">
+<script src="../assets/levels.js"></script>
+<script src="../assets/quiz.js"></script>
+<style>
+  /* Lesson-specific: a row of small heatmaps (small multiples). */
+  .sm-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; margin: 1.1rem 0; }
+  .sm-row figure { margin: 0; }
+  .sm-row figcaption {
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.74rem;
+    color: var(--ink-soft); margin-top: 0.2rem;
+  }
+  .sm-row .heat { max-width: 8.5rem; margin: 0.2rem 0; }
+  .sm-arrow { align-self: center; color: var(--ink-soft); font-size: 1.4rem; }
+</style>
+</head>
+<body data-level="intermediate">
+<div class="level-bar" data-level-bar></div>
+<div class="wrap">
+  <p class="kicker">Capacity Modeling · Lesson 8</p>
+  <h1>Scaling: person → team → company</h1>
+  <p class="lede">One model, every level. The same coloured-squares picture works for a single person, a whole team, or the entire company — you just choose how far to zoom out. Nothing new to learn; only what to add together.</p>
+
+  <!-- ===================== EASY ===================== -->
+  <div class="lvl lvl-easy">
+    <p>You already know the picture: a row of little squares, one per day, coloured by how <strong>busy</strong> it is. Cool <span style="color:#2f6f8f">blue</span> means quiet, warm <span style="color:#9a3b2e">red</span> means slammed. The lovely part is that the <em>same</em> picture works whether you're looking at one person or a thousand.</p>
+
+    <p><strong>Zoom out</strong> and everyone's busy-ness gets added together into one picture. Here are three teammates, each with their own quiet-ish weeks:</p>
+
+    <div class="sm-row">
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="p1"></div><figcaption>Ana</figcaption></figure>
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="p2"></div><figcaption>Ben</figcaption></figure>
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="p3"></div><figcaption>Cara</figcaption></figure>
+    </div>
+
+    <p>Add them up and you get <strong>one</strong> picture for the whole team — hotter, because three people's work is stacked into it:</p>
+
+    <div class="heat" style="--cols:7" data-rows="3" data-heat="team"></div>
+    <div class="heat-legend"><span>quiet</span><span class="heat-ramp"></span><span>slammed</span></div>
+
+    <p>Want to see each person again? <strong>Split it back apart</strong> into the row of small pictures above. Rolling up (adding together) and splitting apart are the only two moves. That's how one person, a team, and a company are all the same tool — just zoomed in or out.</p>
+
+    <div class="note takeaway">Zoom out = add everyone together into one hotter picture. Zoom in = split it back into a small picture per person. Same squares, same colours.</div>
+  </div>
+
+  <!-- ================= INTERMEDIATE ================= -->
+  <div class="lvl lvl-intermediate">
+    <p>The <strong>Subject</strong> is not a fixed type — it's a <em>faceting level</em>. Person, team, and company are the same model rolled up to different depths. Two moves control the depth, and both hang off one idea: the <strong>Dimension</strong>.</p>
+
+    <p>A <strong>Dimension</strong> is a config-declared attribute with a fixed set of allowed values (<code>country</code>, <code>brand</code>, <code>channel</code>, <code>person</code>) that every Capacity and every Consumer is tagged with. Then:</p>
+
+    <ul>
+      <li><strong>Facet by a Dimension</strong> → the visual splits into <strong>Small Multiples</strong>: one heatmap per allowed value.</li>
+      <li><strong>Don't facet</strong> → Capacities and Consumers <strong>sum</strong> across that Dimension (<em>rollup&nbsp;=&nbsp;summation</em>), and the Subject becomes the whole aggregate.</li>
+    </ul>
+
+    <p>So "person → team → company" is nothing but <em>how far you roll up the <code>person</code> Dimension</em>. Facet by it and each Subject is one person; leave it un-faceted and the Subject is the summed team or company.</p>
+
+    <h3>Worked example — three people, one team</h3>
+    <p>Each person's Consumers are tagged with their <code>person</code> value. Facet by <code>person</code> and you see three heatmaps; un-facet and the three sum into a single, hotter team heatmap:</p>
+
+    <div class="sm-row">
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="p1"></div><figcaption>person = Ana</figcaption></figure>
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="p2"></div><figcaption>person = Ben</figcaption></figure>
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="p3"></div><figcaption>person = Cara</figcaption></figure>
+      <span class="sm-arrow">&rarr;</span>
+      <figure><div class="heat" style="--cols:7" data-rows="3" data-heat="team"></div><figcaption>un-faceted = team (sum)</figcaption></figure>
+    </div>
+    <div class="heat-legend"><span>0.0 empty</span><span class="heat-ramp"></span><span>1.0+ full</span></div>
+
+    <table class="grid">
+      <tr><th>Facet by…</th><th>Subject you see</th><th>What you get</th></tr>
+      <tr><td><code>person</code></td><td>Each person</td><td>Small Multiples: one heatmap per person</td></tr>
+      <tr><td><code>country</code></td><td>Each country</td><td>Small Multiples: one heatmap per country</td></tr>
+      <tr><td>(nothing)</td><td>The whole aggregate</td><td>One heatmap; everything summed together</td></tr>
+    </table>
+
+    <div class="note key">The rule: facet by <code>X</code> → you get one heatmap per <code>X</code>. Don't facet by <code>X</code> → everything sums across <code>X</code> into one Subject.</div>
+  </div>
+
+  <!-- ==================== EXPERT ==================== -->
+  <div class="lvl lvl-expert">
+    <p>Rollup-by-summation is the tool's default aggregation, and it is <strong>correct only for fungible, parallel sources</strong> — where the pieces are interchangeable and their capacities genuinely add. Three copy-writers who can each cover any brief are fungible: summing their capacity is right.</p>
+
+    <p>For <strong>coupled</strong> sources it silently lies. If the work must flow through every stage in series (draft → legal sign-off → publish), the aggregate is not the sum of the stages — it's capped by the weakest one. You'd want <code>min</code>, not <code>sum</code>. The heatmap will still happily paint a summed rollup that looks fine while the real throughput is throttled by a single Constraint (see Lesson&nbsp;7<sup class="cite"><a href="0007-composition-and-constraints.html">7</a></sup>). Aggregation is therefore a <strong>modelling decision, not a display toggle</strong>: choosing person/team/company depth also implicitly asserts that the things you're summing are additive.</p>
+
+    <p>The visual side is Tufte's argument for <strong>small multiples</strong>: repeating the same graphic across the values of one Dimension makes comparison across that Dimension almost effortless — the eye reads exception and pattern faster than any table.<sup class="cite"><a href="https://www.edwardtufte.com/book/envisioning-information/">1</a></sup> Faceting is exactly this device applied to a Dimension.</p>
+
+    <div class="note">Where it's a simplification: a Dimension can only be summed if its values share one Declared Unit. If one team's Capacity is in <code>hours</code> and another's is in <code>GBP</code>, the rollup is meaningless — the tool does not convert units, so mixed-unit values can't be summed into one Subject. Facet them instead, or model them as separate Scenarios.<sup class="cite"><a href="../RESOURCES.md">g</a></sup></div>
+  </div>
+
+  <!-- ===================== SHARED ===================== -->
+  <h2>Why this matters</h2>
+  <p>There is no separate "hierarchy" feature to configure. Because the same machine rolls up by summation, you scale a model just by choosing what to facet by — and you keep the <em>same</em> heatmap reading skills at every level. The one thing to stay honest about: only sum what genuinely adds.</p>
+
+  <h2>Your turn — pick the faceting</h2>
+  <p>For each situation, decide how to set up the model.</p>
+
+  <div class="quiz">
+    <p class="q-prompt">You need to answer: "which country was hottest this quarter?"</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="country">Facet by country</button>
+      <button class="q-opt" data-choice="channel">Facet by channel</button>
+      <button class="q-opt" data-choice="none">Don't facet at all</button>
+    </div>
+    <p class="q-feedback" data-correct="country"
+       data-explain-country="Right. Faceting by the country Dimension gives one heatmap per country (Small Multiples), so the hottest one is obvious at a glance."
+       data-explain-channel="That splits by the wrong Dimension — you'd compare channels, not countries. Facet by the Dimension your question is about."
+       data-explain-none="Un-faceted sums every country into one heatmap, so you lose the per-country comparison the question needs."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">You remove all faceting from a three-person team model. What does the single heatmap now show?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="sum">The summed team total</button>
+      <button class="q-opt" data-choice="each">Each person separately</button>
+      <button class="q-opt" data-choice="max">Only the busiest person</button>
+    </div>
+    <p class="q-feedback" data-correct="sum"
+       data-explain-sum="Right. Un-faceted, Capacities and Consumers sum across the person Dimension — the Subject is the whole team aggregate (rollup = summation)."
+       data-explain-each="That's what faceting by person does. Removing faceting collapses them into one aggregate, not three panels."
+       data-explain-max="Summation adds all three, it doesn't pick a maximum. The rollup is the total, not the busiest person."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">Work must flow draft → legal sign-off → publish, and one approver gates every item. You roll the three stages up by summation. What's wrong?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="min">Coupled stages — use min</button>
+      <button class="q-opt" data-choice="sum">Nothing — capacities add</button>
+      <button class="q-opt" data-choice="facet">Just facet by brand</button>
+    </div>
+    <p class="q-feedback" data-correct="min"
+       data-explain-min="Right. The stages are serial/coupled, so the aggregate is capped by the weakest (the approver) — that's min composition, not sum. Summing silently overstates capacity (Lesson 7)."
+       data-explain-sum="These stages are coupled, not parallel. Summing them overstates real throughput, which is gated by the single approver — the Constraint."
+       data-explain-facet="Faceting by brand splits the view but doesn't fix the aggregation error: coupled stages still shouldn't be summed."></p>
+  </div>
+
+  <div class="quiz">
+    <p class="q-prompt">One team's Capacity is declared in <code>hours</code>, another's in <code>GBP</code>. Can you un-facet and roll them into one company heatmap?</p>
+    <div class="q-options">
+      <button class="q-opt" data-choice="no">No — units don't convert</button>
+      <button class="q-opt" data-choice="yes">Yes — sum the totals</button>
+      <button class="q-opt" data-choice="after">Yes — after faceting</button>
+    </div>
+    <p class="q-feedback" data-correct="no"
+       data-explain-no="Right. Summation needs a shared Declared Unit, and the tool never converts units. Mixed units across a Dimension can't be summed — facet them or keep separate Scenarios."
+       data-explain-yes="Summing hours and GBP produces a meaningless number. Rollup requires one Declared Unit; the tool won't convert between them."
+       data-explain-after="Faceting doesn't reconcile units. Two different Declared Units simply can't be added into one Subject."></p>
+  </div>
+
+  <div class="note build">In the tool, scaling is a config choice, not a rebuild: declare a Dimension (e.g. <code>person</code>), tag your Capacities and Consumers with it, then toggle whether you <strong>facet by</strong> it (Small Multiples) or leave it un-faceted (summed aggregate). Same Scenario, different zoom.</div>
+
+  <div class="primary-source">
+    <p class="kicker">Read/watch this next (primary source)</p>
+    <p style="margin:0;"><strong>Edward Tufte — <em>Envisioning Information</em>.</strong> The origin of the "small multiples" idea: repeating one graphic across a dimension's values so the eye compares them effortlessly — exactly what faceting does. Overview: <a href="https://www.edwardtufte.com/book/envisioning-information/">edwardtufte.com</a>. More sources in <a href="../RESOURCES.md">RESOURCES.md</a>.</p>
+  </div>
+
+  <p class="ask"><strong>I'm your teacher — ask me follow-ups.</strong> e.g. &ldquo;Can I facet by two Dimensions at once?&rdquo;, &ldquo;How do I know if my sources are fungible?&rdquo;, or &ldquo;What if two teams use different units?&rdquo;</p>
+
+  <p class="nav">
+    <a href="0007-composition-and-constraints.html">&larr; Prev: Composition &amp; constraints</a>
+    <a href="0009-capstone-model-a-scenario.html">Next: Capstone &rarr;</a>
+    <a href="../index.html">Course home</a>
+    <a href="../reference/glossary.html">Glossary</a>
+  </p>
+</div>
+
+<script>
+/* Paints illustrative mini-heatmaps. Individuals are cool-ish; the team is
+   their summation and therefore hotter (rollup = summation made visible). */
+(function () {
+  function color(v) {
+    if (v < 0) return "#c9c6bd";
+    var stops = [[47,111,143],[234,223,174],[154,59,46]];
+    var t = Math.max(0, Math.min(1, v));
+    var seg = t < 0.5 ? 0 : 1, f = t < 0.5 ? t / 0.5 : (t - 0.5) / 0.5;
+    var a = stops[seg], b = stops[seg + 1];
+    var c = a.map(function (x, i) { return Math.round(x + (b[i] - x) * f); });
+    return "rgb(" + c.join(",") + ")";
+  }
+  var people = {
+    p1: function (i) { return 0.30 + 0.22 * Math.sin(i / 3.0) + 0.08 * Math.sin(i / 1.7); },
+    p2: function (i) { return 0.34 + 0.20 * Math.sin(i / 2.4 + 1.0); },
+    p3: function (i) { return 0.26 + 0.26 * Math.sin(i / 4.2 + 2.0); }
+  };
+  var painters = {
+    p1: people.p1, p2: people.p2, p3: people.p3,
+    team: function (i) { return (people.p1(i) + people.p2(i) + people.p3(i)) * 0.62; }
+  };
+  document.querySelectorAll("[data-heat]").forEach(function (grid) {
+    var key = grid.getAttribute("data-heat");
+    var fn = painters[key] || painters.team;
+    var cols = parseInt(getComputedStyle(grid).getPropertyValue("--cols")) || 7;
+    var rows = parseInt(grid.getAttribute("data-rows")) || 3;
+    var n = cols * rows;
+    for (var i = 0; i < n; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.background = color(fn(i));
+      grid.appendChild(cell);
+    }
+  });
+})();
+</script>
+</body>
+</html>
